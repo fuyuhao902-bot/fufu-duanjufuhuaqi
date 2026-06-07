@@ -513,6 +513,18 @@
       box-shadow: 0 24px 40px rgba(52, 20, 41, 0.18);
     }
 
+    .poster video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #120f17;
+    }
+
+    .poster.empty video {
+      display: none;
+    }
+
     .poster::before,
     .preview-style::before,
     .style-thumb::before {
@@ -559,6 +571,29 @@
       height: 4px;
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(255,255,255,0.95) 42%, rgba(255,255,255,0.28) 42%);
+    }
+
+    .video-empty {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      text-align: center;
+      padding: 24px;
+      color: rgba(255,255,255,0.86);
+      font-size: 13px;
+      line-height: 1.7;
+      z-index: 2;
+    }
+
+    .poster.empty::before,
+    .poster.empty::after,
+    .poster.empty .playbar {
+      display: none;
+    }
+
+    .poster.empty .video-empty {
+      display: grid;
     }
 
     .detail-grid {
@@ -651,6 +686,17 @@
       background:
         radial-gradient(circle at 52% 34%, rgba(255,236,223,0.88), transparent 18%),
         linear-gradient(135deg, #6b4547, #1b1117);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .avatar video,
+    .scene-thumb video,
+    .style-thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .scene-thumb,
@@ -663,6 +709,7 @@
       background:
         linear-gradient(180deg, rgba(0,0,0,0.14), rgba(0,0,0,0.42)),
         linear-gradient(135deg, #765243, #1b151f);
+      overflow: hidden;
     }
 
     .style-thumb {
@@ -1346,7 +1393,9 @@
               <button class="btn btn-soft" id="saveCurrentKnowledgeBtn" type="button">存为模板</button>
             </div>
             <div class="analysis-hero">
-              <div class="poster">
+              <div class="poster empty" id="analysisPoster">
+                <video id="analysisVideo" controls playsinline preload="metadata"></video>
+                <div class="video-empty" id="analysisVideoEmpty">暂无可播放视频。上传短剧视频后，这里会显示真实预览并支持播放。</div>
                 <div class="playbar">▶ 0:00 / 0:15</div>
               </div>
               <div class="detail-grid">
@@ -1806,6 +1855,9 @@
       videoApiKey: document.getElementById("videoApiKey"),
       videoModelName: document.getElementById("videoModelName"),
       analysisTitle: document.getElementById("analysisTitle"),
+      analysisPoster: document.getElementById("analysisPoster"),
+      analysisVideo: document.getElementById("analysisVideo"),
+      analysisVideoEmpty: document.getElementById("analysisVideoEmpty"),
       analysisMeta: document.getElementById("analysisMeta"),
       analysisSummary: document.getElementById("analysisSummary"),
       segmentTable: document.querySelector("#segmentTable tbody"),
@@ -1912,6 +1964,7 @@
         title: title || "未命名短剧",
         genre,
         sourceFile: sourceFile || "待补充视频文件",
+        videoUrl: sourceFile ? URL.createObjectURL(refs.videoUpload.files[0]) : "",
         framework,
         notes: notes || "建议补充你希望系统重点识别的桥段、角色和爆点台词。",
         roles: roleMap[genre] || roleMap["豪门逆袭"],
@@ -1933,6 +1986,16 @@
       if (!item) return;
       state.selectedKnowledgeId = item.id;
       const meta = getKnowledgeDetailMeta(item);
+      if (item.videoUrl) {
+        refs.analysisPoster.classList.remove("empty");
+        refs.analysisVideo.src = item.videoUrl;
+        refs.analysisVideoEmpty.textContent = "";
+      } else {
+        refs.analysisPoster.classList.add("empty");
+        refs.analysisVideo.removeAttribute("src");
+        refs.analysisVideo.load();
+        refs.analysisVideoEmpty.textContent = "该示例条目暂无可播放视频。上传真实短剧视频后，这里会显示预览并支持播放。";
+      }
       refs.analysisTitle.textContent = "《" + item.title + "》开头片段分析";
       refs.analysisMeta.innerHTML = `
         <div><strong>时长</strong><div>${meta.duration}</div></div>
@@ -1970,12 +2033,22 @@
       const tags = [item.genre, item.framework].concat(item.roles.slice(0, 4));
       refs.analysisTags.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join("");
 
+      const rolePreview = item.videoUrl
+        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
+        : "";
+      const scenePreview = item.videoUrl
+        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
+        : "";
+      const stylePreview = item.videoUrl
+        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
+        : "";
+
       refs.analysisSidePanel.innerHTML = `
         <div class="mini-card">
           <h4 style="margin:0 0 8px;">角色识别</h4>
           ${item.roles.slice(0, 3).map(role => `
             <div class="mini-role">
-              <div class="avatar"></div>
+              <div class="avatar">${rolePreview}</div>
               <div>
                 <div style="font-weight:700;">${role}</div>
                 <div class="meta">${item.genre} / 关键角色</div>
@@ -1985,12 +2058,12 @@
         </div>
         <div class="mini-card">
           <h4 style="margin:0 0 10px;">场景识别</h4>
-          <div class="scene-thumb"></div>
+          <div class="scene-thumb">${scenePreview}</div>
           <div class="meta" style="margin-top:10px;">宴会场景 / 对峙空间 / 情绪张力强</div>
         </div>
         <div class="mini-card">
           <h4 style="margin:0 0 10px;">画风识别</h4>
-          <div class="style-thumb"></div>
+          <div class="style-thumb">${stylePreview}</div>
           <div class="meta" style="margin-top:10px;">现实风格 / 高清 / 电影感 / 暖光反差</div>
         </div>
       `;
