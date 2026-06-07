@@ -1917,6 +1917,7 @@
       analysisVideo: document.getElementById("analysisVideo"),
       analysisPosterImage: document.getElementById("analysisPosterImage"),
       analysisVideoEmpty: document.getElementById("analysisVideoEmpty"),
+      analyzeBtn: document.getElementById("analyzeBtn"),
       analysisMeta: document.getElementById("analysisMeta"),
       analysisSummary: document.getElementById("analysisSummary"),
       segmentTable: document.querySelector("#segmentTable tbody"),
@@ -2062,7 +2063,16 @@
         video.playsInline = true;
         video.src = videoUrl;
 
-        const done = previewImage => resolve({ videoUrl, previewImage });
+        let settled = false;
+        const done = previewImage => {
+          if (settled) return;
+          settled = true;
+          resolve({ videoUrl, previewImage });
+        };
+
+        const timer = window.setTimeout(() => {
+          done(createFallbackPreview("预览图"));
+        }, 2200);
 
         video.addEventListener("loadeddata", () => {
           try {
@@ -2071,15 +2081,20 @@
             canvas.height = video.videoHeight || 960;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            window.clearTimeout(timer);
             done(canvas.toDataURL("image/jpeg", 0.86));
           } catch (error) {
+            window.clearTimeout(timer);
             done(createFallbackPreview("预览图"));
           }
         }, { once: true });
 
         video.addEventListener("error", () => {
+          window.clearTimeout(timer);
           done(createFallbackPreview("预览图"));
         }, { once: true });
+
+        video.load();
       });
     }
 
@@ -2555,22 +2570,34 @@
       const framework = refs.kbFramework.value;
       const notes = refs.kbNotes.value.trim();
 
-      const entry = buildKnowledgeAnalysis(title, genre, framework, notes, sourceFile);
-      if (file) {
+      if (!file) {
+        window.alert("请先选择一个短剧视频文件，再点击“上传并识别”。");
+        return;
+      }
+
+      const originalButtonText = refs.analyzeBtn.textContent;
+      refs.analyzeBtn.disabled = true;
+      refs.analyzeBtn.textContent = "识别中...";
+
+      try {
+        const entry = buildKnowledgeAnalysis(title, genre, framework, notes, sourceFile);
         const media = await captureVideoPreview(file);
         entry.videoUrl = media.videoUrl;
         entry.previewImage = media.previewImage;
-      } else {
-        entry.previewImage = createFallbackPreview(title || "短剧");
-      }
-      state.knowledge.unshift(entry);
-      persist();
-      renderKnowledge();
-      renderTemplateOptions();
+        state.knowledge.unshift(entry);
+        persist();
+        renderKnowledge();
+        renderTemplateOptions();
 
-      refs.kbTitle.value = "";
-      refs.kbNotes.value = "";
-      refs.videoUpload.value = "";
+        refs.kbTitle.value = "";
+        refs.kbNotes.value = "";
+        refs.videoUpload.value = "";
+      } catch (error) {
+        window.alert("识别失败，请重试一次。如果还是失败，可以换一个视频文件再试。");
+      } finally {
+        refs.analyzeBtn.disabled = false;
+        refs.analyzeBtn.textContent = originalButtonText;
+      }
     }
 
     function handleSaveTemplate() {
