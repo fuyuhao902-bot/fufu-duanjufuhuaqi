@@ -2107,6 +2107,12 @@
       };
     }
 
+    function buildRolePreviewMarkup(previewImage, index, role) {
+      const positions = ["18% 35%", "50% 30%", "82% 36%", "35% 62%"];
+      const position = positions[index % positions.length];
+      return `<img src="${previewImage}" alt="${role}预览图" style="object-position:${position}; transform:scale(1.45);" />`;
+    }
+
     function renderKnowledgeAnalysis(item) {
       if (!item) return;
       state.selectedKnowledgeId = item.id;
@@ -2173,16 +2179,15 @@
       const tags = [item.genre, item.framework].concat(item.roles.slice(0, 4));
       refs.analysisTags.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join("");
 
-      const rolePreview = '<img src="' + previewImage + '" alt="角色预览图" />';
       const scenePreview = '<img src="' + previewImage + '" alt="场景预览图" />';
       const stylePreview = '<img src="' + previewImage + '" alt="画风预览图" />';
 
       refs.analysisSidePanel.innerHTML = `
         <div class="mini-card">
           <h4 style="margin:0 0 8px;">角色识别</h4>
-          ${item.roles.slice(0, 3).map(role => `
+          ${item.roles.slice(0, 3).map((role, index) => `
             <div class="mini-role">
-              <div class="avatar">${rolePreview}</div>
+              <div class="avatar">${buildRolePreviewMarkup(previewImage, index, role)}</div>
               <div>
                 <div style="font-weight:700;">${role}</div>
                 <div class="meta">${item.genre} / 关键角色</div>
