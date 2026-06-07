@@ -473,6 +473,11 @@
       cursor: pointer;
     }
 
+    .mini-btn.danger {
+      color: #c6456f;
+      border-color: rgba(198, 69, 111, 0.16);
+    }
+
     .meta {
       color: var(--muted);
       font-size: 12px;
@@ -1036,7 +1041,7 @@
 
     .mapping-row {
       display: grid;
-      grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1.2fr) auto;
       gap: 10px;
       align-items: center;
       padding: 10px 12px;
@@ -1047,6 +1052,41 @@
 
     .mapping-row strong {
       font-size: 13px;
+    }
+
+    .upload-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .subject-upload-input {
+      display: none;
+    }
+
+    .upload-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(244, 91, 144, 0.14);
+      background: rgba(255,255,255,0.96);
+      color: var(--pink-deep);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .upload-file-name {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .mutate-grid {
@@ -2169,6 +2209,7 @@
             <div class="meta status">已解析</div>
             <div class="item-actions">
               <button class="mini-btn" type="button" data-save-template="${item.id}">存为模板</button>
+              <button class="mini-btn danger" type="button" data-delete-knowledge="${item.id}">删除</button>
             </div>
           </div>
         `;
@@ -2235,6 +2276,9 @@
             <h4>${item.name}</h4>
             <div class="meta">来源：${item.sourceName || "手动创建"}</div>
             <div class="tiny-tags">${item.roles.split("/").slice(0, 3).map(role => `<span class="tiny-tag">${role.trim()}</span>`).join("")}</div>
+            <div class="item-actions">
+              <button class="mini-btn danger" type="button" data-delete-template="${item.id}">删除</button>
+            </div>
           </div>
         `;
         node.addEventListener("click", () => {
@@ -2307,6 +2351,25 @@
       persist();
       renderTemplateOptions();
       renderTemplates();
+    }
+
+    function deleteKnowledgeById(itemId) {
+      state.knowledge = state.knowledge.filter(item => item.id !== itemId);
+      if (!state.knowledge.length) {
+        state.selectedKnowledgeId = "";
+      }
+      persist();
+      renderKnowledge();
+      renderTemplateOptions();
+    }
+
+    function deleteTemplateById(itemId) {
+      state.templates = state.templates.filter(item => item.id !== itemId);
+      persist();
+      renderTemplateOptions();
+      renderTemplates();
+      renderVariationRoleOptions();
+      updatePromptPreview();
     }
 
     function saveTemplateFromKnowledgeId(itemId) {
@@ -2382,7 +2445,12 @@
             <option value="${role}形象库B">${role}形象库B</option>
             <option value="通用婚恋角色库">通用婚恋角色库</option>
           </select>
-          <input class="subject-upload-input" data-role="${role}" type="file" accept="image/*,video/*" />
+          <div class="upload-inline">
+            <label class="upload-trigger" for="subject-upload-${index}">上传主体</label>
+            <input id="subject-upload-${index}" class="subject-upload-input" data-role="${role}" type="file" accept="image/*,video/*" />
+            <span class="upload-file-name">未上传</span>
+          </div>
+          <button class="mini-btn danger" type="button" data-clear-subject="${role}">清除</button>
         </div>
       `).join("");
       updatePromptPreview();
@@ -2686,10 +2754,23 @@
     });
 
     refs.knowledgeList.addEventListener("click", event => {
+      const deleteButton = event.target.closest("[data-delete-knowledge]");
+      if (deleteButton) {
+        event.stopPropagation();
+        deleteKnowledgeById(deleteButton.dataset.deleteKnowledge);
+        return;
+      }
       const button = event.target.closest("[data-save-template]");
       if (!button) return;
       event.stopPropagation();
       saveTemplateFromKnowledgeId(button.dataset.saveTemplate);
+    });
+
+    refs.templateList.addEventListener("click", event => {
+      const deleteButton = event.target.closest("[data-delete-template]");
+      if (!deleteButton) return;
+      event.stopPropagation();
+      deleteTemplateById(deleteButton.dataset.deleteTemplate);
     });
 
     refs.templateRoleChecklist.addEventListener("change", () => {
@@ -2697,8 +2778,29 @@
       updatePromptPreview();
     });
 
-    refs.subjectMappingList.addEventListener("change", updatePromptPreview);
+    refs.subjectMappingList.addEventListener("change", event => {
+      const uploadInput = event.target.closest(".subject-upload-input");
+      if (uploadInput) {
+        const fileNameNode = uploadInput.parentElement.querySelector(".upload-file-name");
+        if (fileNameNode) {
+          fileNameNode.textContent = uploadInput.files[0]?.name || "未上传";
+        }
+      }
+      updatePromptPreview();
+    });
     refs.subjectMappingList.addEventListener("input", updatePromptPreview);
+    refs.subjectMappingList.addEventListener("click", event => {
+      const clearButton = event.target.closest("[data-clear-subject]");
+      if (!clearButton) return;
+      const row = clearButton.closest(".mapping-row");
+      const select = row?.querySelector(".subject-library-select");
+      const input = row?.querySelector(".subject-upload-input");
+      const fileNameNode = row?.querySelector(".upload-file-name");
+      if (select) select.value = "";
+      if (input) input.value = "";
+      if (fileNameNode) fileNameNode.textContent = "未上传";
+      updatePromptPreview();
+    });
     refs.staffLoginBtn.addEventListener("click", handleStaffLogin);
     refs.staffLogoutBtn.addEventListener("click", handleStaffLogout);
 
