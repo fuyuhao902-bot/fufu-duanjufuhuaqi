@@ -1810,6 +1810,12 @@
           "揭晓：沈总，您名下的集团正在等您回归。",
           "悬念：前夫这才发现她才是真正的掌权人。"
         ],
+        characterDialogues: [
+          { role: "势利前夫", beat: "羞辱", line: "你这种人离了我什么都不是。" },
+          { role: "隐忍前妻", beat: "反击", line: "不好意思，离婚协议我已经签完了。" },
+          { role: "助理证人", beat: "揭晓", line: "沈总，您名下的集团正在等您回归。" },
+          { role: "嘴硬婆婆", beat: "慌乱", line: "她怎么可能才是真正的掌权人？" }
+        ],
         structure: [
           "0-3 秒：公开羞辱，迅速建立情绪张力。",
           "3-8 秒：看似弱势的主角平静反击，铺垫身份反转。",
@@ -1831,6 +1837,12 @@
           "离场：孩子发烧了，我没空陪你演深情。",
           "钩子：总裁听见孩子叫她妈妈，彻底慌了。"
         ],
+        characterDialogues: [
+          { role: "绿茶前任", beat: "误会", line: "你不是说这辈子只会娶我吗？" },
+          { role: "倔强女主", beat: "压抑", line: "原来我才是你们笑话里的替身。" },
+          { role: "倔强女主", beat: "离场", line: "孩子发烧了，我没空陪你演深情。" },
+          { role: "迟钝总裁", beat: "慌乱", line: "等等，孩子为什么会叫你妈妈？" }
+        ],
         structure: [
           "0-4 秒：婚礼现场突发对白，制造巨大误会。",
           "4-10 秒：女主压抑崩溃，用一句短台词切断关系。",
@@ -1848,7 +1860,13 @@
         sourceName: "离婚当天她身价曝光",
         roles: "隐忍前妻 / 势利前夫 / 刻薄长辈 / 到场证人",
         hook: "公开羞辱后当场身份反转",
-        lines: "羞辱一句、冷静反击一句、证据揭晓一句、下集悬念一句"
+        lines: "势利前夫：你这种人离了我什么都不是。；隐忍前妻：不好意思，离婚协议我已经签完了。；到场证人：沈总，您名下的集团正在等您回归。；刻薄长辈：她怎么可能才是真正的掌权人？",
+        dialogueMap: [
+          { role: "势利前夫", beat: "羞辱", line: "你这种人离了我什么都不是。" },
+          { role: "隐忍前妻", beat: "反击", line: "不好意思，离婚协议我已经签完了。" },
+          { role: "到场证人", beat: "揭晓", line: "沈总，您名下的集团正在等您回归。" },
+          { role: "刻薄长辈", beat: "慌乱", line: "她怎么可能才是真正的掌权人？" }
+        ]
       },
       {
         id: "tpl-2",
@@ -1857,7 +1875,13 @@
         sourceName: "婚礼上总裁认错白月光",
         roles: "倔强女主 / 迟钝总裁 / 挑拨前任 / 隐藏孩子",
         hook: "婚礼误会引爆离场，孩子身份抛钩子",
-        lines: "误会质问、压抑离场、孩子出现、男主后悔"
+        lines: "挑拨前任：你不是说这辈子只会娶我吗？；倔强女主：原来我才是你们笑话里的替身。；倔强女主：孩子发烧了，我没空陪你演深情。；迟钝总裁：等等，孩子为什么会叫你妈妈？",
+        dialogueMap: [
+          { role: "挑拨前任", beat: "误会", line: "你不是说这辈子只会娶我吗？" },
+          { role: "倔强女主", beat: "压抑", line: "原来我才是你们笑话里的替身。" },
+          { role: "倔强女主", beat: "离场", line: "孩子发烧了，我没空陪你演深情。" },
+          { role: "迟钝总裁", beat: "慌乱", line: "等等，孩子为什么会叫你妈妈？" }
+        ]
       }
     ];
 
@@ -2019,6 +2043,26 @@
         ]
       };
 
+      const dialogueSpeakerMap = {
+        "3秒冲突钩子": [1, 0, 0, 3],
+        "身份反差开局": [1, 0, 3, 2],
+        "羞辱后打脸": [1, 0, 3, 1],
+        "误会引爆悬念": [2, 0, 0, 1]
+      };
+
+      const roles = roleMap[genre] || roleMap["豪门逆袭"];
+      const lineFramework = lineMap[framework] || lineMap["3秒冲突钩子"];
+      const speakerIndexes = dialogueSpeakerMap[framework] || dialogueSpeakerMap["3秒冲突钩子"];
+      const characterDialogues = lineFramework.map((entry, index) => {
+        const [beat, rawLine] = entry.split("：");
+        const roleIndex = speakerIndexes[index] ?? (index % roles.length);
+        return {
+          role: roles[Math.max(0, Math.min(roleIndex, roles.length - 1))] || ("角色" + (index + 1)),
+          beat: beat || "关键台词",
+          line: rawLine || entry
+        };
+      });
+
       return {
         id: uid("kb"),
         title: title || "未命名短剧",
@@ -2026,12 +2070,90 @@
         sourceFile: sourceFile || "待补充视频文件",
         videoUrl: sourceFile ? URL.createObjectURL(refs.videoUpload.files[0]) : "",
         previewImage: "",
+        rolePreviewImages: [],
         framework,
         notes: notes || "建议补充你希望系统重点识别的桥段、角色和爆点台词。",
-        roles: roleMap[genre] || roleMap["豪门逆袭"],
-        lineFramework: lineMap[framework] || lineMap["3秒冲突钩子"],
+        roles,
+        lineFramework,
+        characterDialogues,
         structure: structureMap[framework] || structureMap["3秒冲突钩子"]
       };
+    }
+
+    function splitRoleText(rolesText) {
+      if (Array.isArray(rolesText)) return rolesText.filter(Boolean).map(item => item.trim());
+      return String(rolesText || "").split("/").map(role => role.trim()).filter(Boolean);
+    }
+
+    function splitLineText(linesText) {
+      return String(linesText || "")
+        .split(/\n|；/)
+        .map(line => line.replace(/^\d+\.\s*/, "").trim())
+        .filter(Boolean);
+    }
+
+    function getCharacterDialogues(item) {
+      if (Array.isArray(item?.characterDialogues) && item.characterDialogues.length) {
+        return item.characterDialogues;
+      }
+
+      const roles = Array.isArray(item?.roles) ? item.roles : splitRoleText(item?.roles);
+      const lines = Array.isArray(item?.lineFramework) ? item.lineFramework : splitLineText(item?.lines);
+
+      return lines.map((entry, index) => {
+        const [beat, ...lineParts] = String(entry).split("：");
+        const hasBeat = lineParts.length > 0;
+        return {
+          role: roles[index % Math.max(roles.length, 1)] || ("角色" + (index + 1)),
+          beat: hasBeat ? beat : "关键台词",
+          line: hasBeat ? lineParts.join("：").trim() : String(entry).trim()
+        };
+      });
+    }
+
+    function stringifyDialogueMap(dialogues) {
+      return dialogues
+        .map(item => `${item.role}：${item.line}`)
+        .join("\n");
+    }
+
+    function escapeRegExp(value) {
+      return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function parseDialogueMap(linesText, rolesText, sourceDialogues) {
+      const roles = splitRoleText(rolesText);
+      const lines = splitLineText(linesText);
+      const fallbackDialogues = Array.isArray(sourceDialogues) ? sourceDialogues : [];
+
+      return lines.map((entry, index) => {
+        let role = roles[index % Math.max(roles.length, 1)] || ("角色" + (index + 1));
+        let line = entry;
+        const matchedRole = roles.find(candidate => new RegExp("^" + escapeRegExp(candidate) + "\\s*[：:]").test(entry));
+
+        if (matchedRole) {
+          role = matchedRole;
+          line = entry.replace(new RegExp("^" + escapeRegExp(matchedRole) + "\\s*[：:]\\s*"), "").trim();
+        }
+
+        return {
+          role,
+          beat: fallbackDialogues[index]?.beat || ["开场冲突", "情绪反击", "真相揭晓", "追更钩子"][index] || "关键台词",
+          line
+        };
+      });
+    }
+
+    function getTemplateDialogues(template) {
+      if (Array.isArray(template?.dialogueMap) && template.dialogueMap.length) {
+        return template.dialogueMap;
+      }
+
+      const sourceDialogues = template?.sourceId
+        ? getCharacterDialogues(state.knowledge.find(item => item.id === template.sourceId))
+        : [];
+
+      return parseDialogueMap(template?.lines || "", template?.roles || "", sourceDialogues);
     }
 
     function createFallbackPreview(label) {
@@ -2152,11 +2274,69 @@
       });
     }
 
+    function seekVideo(video, time) {
+      return new Promise(resolve => {
+        const onSeeked = () => {
+          video.removeEventListener("seeked", onSeeked);
+          resolve();
+        };
+        video.addEventListener("seeked", onSeeked);
+        video.currentTime = Math.max(0, Math.min(time, Math.max((video.duration || 0) - 0.05, 0)));
+      });
+    }
+
+    async function createRolePreviewSlicesFromVideo(videoUrl, count) {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.muted = true;
+      video.playsInline = true;
+      video.src = videoUrl;
+
+      await new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => reject(new Error("video metadata timeout")), 2400);
+        video.addEventListener("loadedmetadata", () => {
+          window.clearTimeout(timer);
+          resolve();
+        }, { once: true });
+        video.addEventListener("error", () => {
+          window.clearTimeout(timer);
+          reject(new Error("video metadata error"));
+        }, { once: true });
+        video.load();
+      });
+
+      const times = [0.12, 0.45, 0.78, 0.88].slice(0, count).map(ratio => (video.duration || 1) * ratio);
+      const cropPresets = [
+        { x: 0.06, y: 0.14, w: 0.38, h: 0.48 },
+        { x: 0.31, y: 0.12, w: 0.38, h: 0.5 },
+        { x: 0.56, y: 0.13, w: 0.38, h: 0.5 },
+        { x: 0.18, y: 0.28, w: 0.46, h: 0.5 }
+      ];
+
+      const frames = [];
+      for (let index = 0; index < count; index += 1) {
+        await seekVideo(video, times[index] || 0);
+        const canvas = document.createElement("canvas");
+        canvas.width = 96;
+        canvas.height = 96;
+        const ctx = canvas.getContext("2d");
+        const preset = cropPresets[index % cropPresets.length];
+        const sx = video.videoWidth * preset.x;
+        const sy = video.videoHeight * preset.y;
+        const sw = video.videoWidth * preset.w;
+        const sh = video.videoHeight * preset.h;
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+        frames.push(canvas.toDataURL("image/jpeg", 0.86));
+      }
+      return frames;
+    }
+
     function renderKnowledgeAnalysis(item) {
       if (!item) return;
       state.selectedKnowledgeId = item.id;
       const meta = getKnowledgeDetailMeta(item);
       const previewImage = item.previewImage || createFallbackPreview(item.title || "短剧");
+      const characterDialogues = getCharacterDialogues(item);
       if (item.videoUrl) {
         refs.analysisPoster.classList.remove("empty");
         refs.analysisPoster.classList.remove("has-image");
@@ -2190,7 +2370,18 @@
       `;
       refs.analysisSummary.innerHTML = `
         <strong>内容简介</strong>
-        ${item.notes}
+        <div>${item.notes}</div>
+        <div class="dialog-list" style="margin-top:14px; max-height:220px;">
+          ${characterDialogues.map(entry => `
+            <div class="dialog-row">
+              <div class="avatar"></div>
+              <div class="dialog-text">
+                <strong>${entry.role} · ${entry.beat}</strong>
+                <div>“${entry.line}”</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
       `;
 
       const segments = item.structure.map((line, index) => {
@@ -2235,6 +2426,16 @@
           `).join("")}
         </div>
         <div class="mini-card">
+          <h4 style="margin:0 0 8px;">台词识别</h4>
+          ${characterDialogues.slice(0, 4).map(entry => `
+            <div style="padding:8px 0; border-bottom:1px solid rgba(244, 91, 144, 0.08);">
+              <div style="font-weight:700;">${entry.role}</div>
+              <div class="meta">${entry.beat}</div>
+              <div style="margin-top:4px; color:#4e3c49; line-height:1.6;">“${entry.line}”</div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="mini-card">
           <h4 style="margin:0 0 10px;">场景识别</h4>
           <div class="scene-thumb">${scenePreview}</div>
           <div class="meta" style="margin-top:10px;">宴会场景 / 对峙空间 / 情绪张力强</div>
@@ -2246,10 +2447,17 @@
         </div>
       `;
 
-      createRolePreviewSlices(previewImage, Math.min(item.roles.length, 3)).then(slices => {
+      const rolePreviewPromise = item.videoUrl
+        ? createRolePreviewSlicesFromVideo(item.videoUrl, Math.min(item.roles.length, 3)).catch(() =>
+            createRolePreviewSlices(previewImage, Math.min(item.roles.length, 3))
+          )
+        : createRolePreviewSlices(previewImage, Math.min(item.roles.length, 3));
+
+      rolePreviewPromise.then(slices => {
+        item.rolePreviewImages = slices;
         refs.analysisSidePanel.querySelectorAll("[data-role-preview-index]").forEach(node => {
           const previewIndex = Number(node.dataset.rolePreviewIndex);
-          node.src = slices[previewIndex] || previewImage;
+          node.src = item.rolePreviewImages[previewIndex] || previewImage;
         });
       });
     }
@@ -2295,15 +2503,16 @@
 
     function renderTemplateFeature(item) {
       if (!item) return;
+      const dialogues = getTemplateDialogues(item);
       refs.templateFeatureTitle.textContent = item.name;
       refs.templateFeatureMeta.textContent = "使用 1.2w · 收藏 856 · 来源：" + (item.sourceName || "手动创建");
       refs.templateFeatureTags.innerHTML = item.hook.split(/[，、\s/]+/).filter(Boolean).slice(0, 4).map(tag => `<span class="tiny-tag">${tag}</span>`).join("");
-      refs.templateFeatureDialogs.innerHTML = item.lines.split(/[；\n]/).filter(Boolean).slice(0, 5).map((line, index) => `
+      refs.templateFeatureDialogs.innerHTML = dialogues.slice(0, 5).map(entry => `
         <div class="dialog-row">
           <div class="avatar"></div>
           <div class="dialog-text">
-            <strong>${["开场白", "男主宣言", "冲突激化", "女主反击", "结尾悬念"][index] || "关键台词"}</strong>
-            <div>${line}</div>
+            <strong>${entry.role} · ${entry.beat}</strong>
+            <div>${entry.line}</div>
           </div>
         </div>
       `).join("");
@@ -2408,7 +2617,7 @@
       refs.templateName.value = item.title + "模板";
       refs.templateRoles.value = item.roles.join(" / ");
       refs.templateHook.value = item.structure[0];
-      refs.templateLines.value = item.lineFramework.join("\n");
+      refs.templateLines.value = stringifyDialogueMap(getCharacterDialogues(item));
       refs.templateSource.value = item.id;
     }
 
@@ -2447,6 +2656,7 @@
     }
 
     function createTemplateFromKnowledge(item) {
+      const dialogues = getCharacterDialogues(item);
       return {
         id: uid("tpl"),
         name: item.title + "模板",
@@ -2454,7 +2664,8 @@
         sourceName: item.title,
         roles: item.roles.join(" / "),
         hook: item.structure[0],
-        lines: item.lineFramework.join("；")
+        lines: dialogues.map(entry => `${entry.role}：${entry.line}`).join("；"),
+        dialogueMap: dialogues
       };
     }
 
@@ -2534,6 +2745,7 @@
     function buildFinalPrompt() {
       const template = getCurrentTemplate();
       if (!template) return "请先选择模板。";
+      const templateDialogues = getTemplateDialogues(template);
 
       const { changed, unchanged } = getVariationSelection();
       if (!changed.length) {
@@ -2551,8 +2763,13 @@
           : "角色替换为新主体";
         parts.push("角色替换：" + roleText);
       }
-      if (refs.mutateLines.checked && refs.variationTone.value.trim()) {
-        parts.push("台词方向：" + refs.variationTone.value.trim());
+      if (refs.mutateLines.checked) {
+        parts.push("台词替换时保持角色归属：" + templateDialogues.map(item => item.role).join(" / "));
+        if (refs.variationTone.value.trim()) {
+          parts.push("台词方向：" + refs.variationTone.value.trim());
+        }
+      } else if (templateDialogues.length) {
+        parts.push("台词逐句保持不变：" + templateDialogues.map(item => `${item.role}「${item.line}」`).join("；"));
       }
       if (refs.mutateStyle.checked && refs.variationStylePrompt.value.trim()) {
         parts.push("画风方向：" + refs.variationStylePrompt.value.trim());
@@ -2571,6 +2788,7 @@
     }
 
     function buildVariationOutput(template, baseRoles, tone, index, subjectLabel, promptText) {
+      const templateDialogues = getTemplateDialogues(template);
       const emphasis = [
         "更快进入冲突",
         "更强角色压制感",
@@ -2590,7 +2808,7 @@
         promptText,
         opening: "开头镜头：" + template.hook.replace("0-3 秒：", "").replace("0-4 秒：", "") + "，让主角一出场就置身高压冲突。",
         conflict: "冲突推进：" + (tone || "保留原设") + "，让 " + (baseRoles || template.roles).split("/")[0].trim() + " 在两句对白内完成气场反转。",
-        keyLine: "爆点台词：" + template.lines.split(/[；\n]/)[0] + "，随后再补一句更适合投流切片的短句强化记忆点。",
+        keyLine: "爆点台词：" + (templateDialogues[0] ? `${templateDialogues[0].role}「${templateDialogues[0].line}」` : template.lines.split(/[；\n]/)[0]) + "，随后再补一句更适合投流切片的短句强化记忆点。",
         cliffhanger: "结尾悬念：在观众以为冲突结束时，再补一个身份、孩子或证据钩子，把下一集欲望拉满。"
       };
     }
@@ -2607,6 +2825,7 @@
         apiKey: refs.videoApiKey.value ? "已填写但前端预览不展示明文" : "",
         mutate: getVariationSelection().changed,
         subjectMappings: getSubjectMappings(),
+        lockedDialogues: selectedTemplate ? getTemplateDialogues(selectedTemplate) : [],
         prompt,
         promptSeeds: sampleOutputs
       };
@@ -2658,6 +2877,7 @@
       const lines = refs.templateLines.value.trim();
       const sourceId = refs.templateSource.value;
       const source = state.knowledge.find(item => item.id === sourceId);
+      const dialogueMap = parseDialogueMap(lines, roles, source ? getCharacterDialogues(source) : []);
 
       if (!name || !roles || !hook || !lines) {
         window.alert("请先填写完整的模板名称、角色设定、开头爆点和关键台词框架。");
@@ -2671,7 +2891,8 @@
         sourceName: source ? source.title : "手动创建",
         roles,
         hook,
-        lines
+        lines,
+        dialogueMap
       });
 
       refs.templateName.value = "";
