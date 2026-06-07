@@ -521,11 +521,23 @@
       background: #120f17;
     }
 
+    .poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #120f17;
+    }
+
     .poster.empty video {
       display: none;
     }
 
-    .poster::before,
+    .poster.has-video img,
+    .poster.empty img {
+      display: none;
+    }
+
     .preview-style::before,
     .style-thumb::before {
       content: "";
@@ -539,7 +551,6 @@
       filter: blur(0.2px);
     }
 
-    .poster::after,
     .preview-style::after,
     .style-thumb::after {
       content: "";
@@ -571,6 +582,11 @@
       height: 4px;
       border-radius: 999px;
       background: linear-gradient(90deg, rgba(255,255,255,0.95) 42%, rgba(255,255,255,0.28) 42%);
+    }
+
+    .poster.has-video .playbar,
+    .poster.has-image .playbar {
+      display: none;
     }
 
     .video-empty {
@@ -690,9 +706,10 @@
       position: relative;
     }
 
-    .avatar video,
-    .scene-thumb video,
-    .style-thumb video {
+    .avatar img,
+    .scene-thumb img,
+    .style-thumb img,
+    .thumb img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -1395,6 +1412,7 @@
             <div class="analysis-hero">
               <div class="poster empty" id="analysisPoster">
                 <video id="analysisVideo" controls playsinline preload="metadata"></video>
+                <img id="analysisPosterImage" alt="视频预览图" />
                 <div class="video-empty" id="analysisVideoEmpty">暂无可播放视频。上传短剧视频后，这里会显示真实预览并支持播放。</div>
                 <div class="playbar">▶ 0:00 / 0:15</div>
               </div>
@@ -1857,6 +1875,7 @@
       analysisTitle: document.getElementById("analysisTitle"),
       analysisPoster: document.getElementById("analysisPoster"),
       analysisVideo: document.getElementById("analysisVideo"),
+      analysisPosterImage: document.getElementById("analysisPosterImage"),
       analysisVideoEmpty: document.getElementById("analysisVideoEmpty"),
       analysisMeta: document.getElementById("analysisMeta"),
       analysisSummary: document.getElementById("analysisSummary"),
@@ -1965,12 +1984,63 @@
         genre,
         sourceFile: sourceFile || "待补充视频文件",
         videoUrl: sourceFile ? URL.createObjectURL(refs.videoUpload.files[0]) : "",
+        previewImage: "",
         framework,
         notes: notes || "建议补充你希望系统重点识别的桥段、角色和爆点台词。",
         roles: roleMap[genre] || roleMap["豪门逆袭"],
         lineFramework: lineMap[framework] || lineMap["3秒冲突钩子"],
         structure: structureMap[framework] || structureMap["3秒冲突钩子"]
       };
+    }
+
+    function createFallbackPreview(label) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="640" height="960" viewBox="0 0 640 960">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#7c5346" />
+              <stop offset="100%" stop-color="#19131b" />
+            </linearGradient>
+          </defs>
+          <rect width="640" height="960" rx="36" fill="url(#bg)" />
+          <circle cx="220" cy="320" r="100" fill="rgba(255,236,223,0.92)" />
+          <circle cx="430" cy="290" r="120" fill="rgba(255,240,230,0.88)" />
+          <rect x="155" y="430" width="130" height="270" rx="65" fill="rgba(255,236,223,0.76)" />
+          <rect x="355" y="400" width="150" height="320" rx="75" fill="rgba(255,236,223,0.68)" />
+          <text x="320" y="850" text-anchor="middle" fill="rgba(255,255,255,0.88)" font-size="34" font-family="Arial, sans-serif">${label}</text>
+        </svg>
+      `;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function captureVideoPreview(file) {
+      return new Promise(resolve => {
+        const videoUrl = URL.createObjectURL(file);
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        video.muted = true;
+        video.playsInline = true;
+        video.src = videoUrl;
+
+        const done = previewImage => resolve({ videoUrl, previewImage });
+
+        video.addEventListener("loadeddata", () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 960;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            done(canvas.toDataURL("image/jpeg", 0.86));
+          } catch (error) {
+            done(createFallbackPreview("预览图"));
+          }
+        }, { once: true });
+
+        video.addEventListener("error", () => {
+          done(createFallbackPreview("预览图"));
+        }, { once: true });
+      });
     }
 
     function getKnowledgeDetailMeta(item) {
@@ -1986,14 +2056,29 @@
       if (!item) return;
       state.selectedKnowledgeId = item.id;
       const meta = getKnowledgeDetailMeta(item);
+      const previewImage = item.previewImage || createFallbackPreview(item.title || "短剧");
       if (item.videoUrl) {
         refs.analysisPoster.classList.remove("empty");
+        refs.analysisPoster.classList.remove("has-image");
+        refs.analysisPoster.classList.add("has-video");
         refs.analysisVideo.src = item.videoUrl;
+        refs.analysisPosterImage.removeAttribute("src");
         refs.analysisVideoEmpty.textContent = "";
-      } else {
-        refs.analysisPoster.classList.add("empty");
+      } else if (previewImage) {
+        refs.analysisPoster.classList.remove("empty");
+        refs.analysisPoster.classList.remove("has-video");
+        refs.analysisPoster.classList.add("has-image");
         refs.analysisVideo.removeAttribute("src");
         refs.analysisVideo.load();
+        refs.analysisPosterImage.src = previewImage;
+        refs.analysisVideoEmpty.textContent = "当前为静态预览图。上传真实视频后，这里可直接播放。";
+      } else {
+        refs.analysisPoster.classList.add("empty");
+        refs.analysisPoster.classList.remove("has-video");
+        refs.analysisPoster.classList.remove("has-image");
+        refs.analysisVideo.removeAttribute("src");
+        refs.analysisVideo.load();
+        refs.analysisPosterImage.removeAttribute("src");
         refs.analysisVideoEmpty.textContent = "该示例条目暂无可播放视频。上传真实短剧视频后，这里会显示预览并支持播放。";
       }
       refs.analysisTitle.textContent = "《" + item.title + "》开头片段分析";
@@ -2033,15 +2118,9 @@
       const tags = [item.genre, item.framework].concat(item.roles.slice(0, 4));
       refs.analysisTags.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join("");
 
-      const rolePreview = item.videoUrl
-        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
-        : "";
-      const scenePreview = item.videoUrl
-        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
-        : "";
-      const stylePreview = item.videoUrl
-        ? '<video src="' + item.videoUrl + '" muted autoplay loop playsinline></video>'
-        : "";
+      const rolePreview = '<img src="' + previewImage + '" alt="角色预览图" />';
+      const scenePreview = '<img src="' + previewImage + '" alt="场景预览图" />';
+      const stylePreview = '<img src="' + previewImage + '" alt="画风预览图" />';
 
       refs.analysisSidePanel.innerHTML = `
         <div class="mini-card">
@@ -2081,8 +2160,9 @@
       state.knowledge.forEach((item, index) => {
         const node = document.createElement("article");
         node.className = "video-item";
+        const previewImage = item.previewImage || createFallbackPreview("短剧");
         node.innerHTML = `
-          <div class="thumb"></div>
+          <div class="thumb"><img src="${previewImage}" alt="短剧预览图" /></div>
           <div>
             <h4>${item.title}</h4>
             <div class="meta">上传时间：2024-05-${index === 0 ? "20" : "18"}</div>
@@ -2399,14 +2479,22 @@
       refs.apiPayloadPreview.textContent = JSON.stringify(payload, null, 2);
     }
 
-    function handleAnalyze() {
-      const sourceFile = refs.videoUpload.files[0]?.name || "";
+    async function handleAnalyze() {
+      const file = refs.videoUpload.files[0];
+      const sourceFile = file?.name || "";
       const title = refs.kbTitle.value.trim();
       const genre = refs.kbGenre.value;
       const framework = refs.kbFramework.value;
       const notes = refs.kbNotes.value.trim();
 
       const entry = buildKnowledgeAnalysis(title, genre, framework, notes, sourceFile);
+      if (file) {
+        const media = await captureVideoPreview(file);
+        entry.videoUrl = media.videoUrl;
+        entry.previewImage = media.previewImage;
+      } else {
+        entry.previewImage = createFallbackPreview(title || "短剧");
+      }
       state.knowledge.unshift(entry);
       persist();
       renderKnowledge();
