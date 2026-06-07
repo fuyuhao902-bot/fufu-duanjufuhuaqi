@@ -2019,27 +2019,27 @@
       const lineMap = {
         "3秒冲突钩子": [
           "挑衅：你也配站在这里？",
-          "停顿：主角没有立刻解释，先让情绪发酵。",
+          "逼问：怎么，不敢把真相说出来吗？",
           "反击：那你最好看清楚我是谁。",
-          "钩子：全场安静后，下一秒更大的身份揭晓。"
+          "压轴：现在，该轮到你给我道歉了。"
         ],
         "身份反差开局": [
           "轻视：她不过就是个没人要的替身。",
-          "伏笔：门口那辆车，是来接谁的？",
+          "试探：门口那辆车，不会是来接她的吧？",
           "揭晓：夫人，董事会的人已经等您很久了。",
-          "后果：刚才羞辱她的人彻底慌了。"
+          "慌乱：不可能，你怎么会是他们等的人？"
         ],
         "羞辱后打脸": [
           "羞辱：你离开我，连饭都吃不起。",
           "平静：我离开的从来不是你，是烂掉的人生。",
           "打脸：这份股权转让，现在属于我。",
-          "追更：他跪下时，她只回头看了一眼。"
+          "追更：求我？你已经没这个资格了。"
         ],
         "误会引爆悬念": [
           "误会：原来你心里的人，从来都不是我。",
           "决裂：今天这场婚礼，我退出。",
-          "揭密：孩子看到他时，脱口而出叫了一声爸爸。",
-          "悬念：男主终于意识到自己错过了什么。"
+          "揭密：妈妈，我们还要陪这个叔叔演下去吗？",
+          "悬念：等等，你刚刚叫她什么？"
         ]
       };
 
@@ -2117,6 +2117,15 @@
         .join("\n");
     }
 
+    function syncKnowledgeDialogueFields(item, dialogues) {
+      item.characterDialogues = dialogues.map(entry => ({
+        role: entry.role,
+        beat: entry.beat || "关键台词",
+        line: entry.line
+      }));
+      item.lineFramework = item.characterDialogues.map(entry => `${entry.beat}：${entry.line}`);
+    }
+
     function escapeRegExp(value) {
       return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
@@ -2154,6 +2163,19 @@
         : [];
 
       return parseDialogueMap(template?.lines || "", template?.roles || "", sourceDialogues);
+    }
+
+    function saveKnowledgeDialogueDraft(itemId, draftText) {
+      const item = state.knowledge.find(entry => entry.id === itemId);
+      if (!item) return;
+
+      const rolesText = Array.isArray(item.roles) ? item.roles.join(" / ") : String(item.roles || "");
+      const updatedDialogues = parseDialogueMap(draftText, rolesText, getCharacterDialogues(item));
+      syncKnowledgeDialogueFields(item, updatedDialogues);
+      persist();
+      renderKnowledgeAnalysis(item);
+      renderTemplateOptions();
+      updatePromptPreview();
     }
 
     function createFallbackPreview(label) {
@@ -2382,6 +2404,14 @@
             </div>
           `).join("")}
         </div>
+        <div style="margin-top:14px;">
+          <strong style="display:block; margin-bottom:8px;">台词校对</strong>
+          <div class="meta" style="margin-bottom:8px;">如果识别结果不准，可以按“角色：台词”逐行修正，后续模板和裂变会优先使用这里保存的内容。</div>
+          <textarea id="dialogueDraftEditor" style="min-height:140px;" placeholder="例如：黑化主角：你也配站在这里？">${stringifyDialogueMap(characterDialogues)}</textarea>
+          <div class="item-actions" style="margin-top:10px;">
+            <button class="mini-btn" type="button" id="saveDialogueDraftBtn">保存台词校对</button>
+          </div>
+        </div>
       `;
 
       const segments = item.structure.map((line, index) => {
@@ -2459,6 +2489,15 @@
           const previewIndex = Number(node.dataset.rolePreviewIndex);
           node.src = item.rolePreviewImages[previewIndex] || previewImage;
         });
+      });
+
+      document.getElementById("saveDialogueDraftBtn")?.addEventListener("click", () => {
+        const draft = document.getElementById("dialogueDraftEditor")?.value.trim() || "";
+        if (!draft) {
+          window.alert("请先填写至少一条角色台词，再保存。");
+          return;
+        }
+        saveKnowledgeDialogueDraft(item.id, draft);
       });
     }
 
