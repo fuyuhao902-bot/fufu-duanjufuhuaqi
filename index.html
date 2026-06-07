@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>短剧裂变平台</title>
+  <style>
+    :root {
+      --bg: #fff7fa;
+      --bg-2: #fff1f6;
+      --surface: rgba(255, 255, 255, 0.82);
+      --surface-strong: rgba(255, 255, 255, 0.94);
+      --surface-soft: rgba(255, 244, 248, 0.88);
+      --line: rgba(247, 102, 150, 0.14);
+      --line-strong: rgba(247, 102, 150, 0.28);
+      --text: #241824;
+      --muted: #8e7484;
+      --pink: #f45b90;
+      --pink-deep: #ed3c7f;
+      --pink-soft: #ffe7f0;
+      --rose: #ff8db2;
+      --gold: #d9a146;
+      --shadow: 0 24px 70px rgba(249, 115, 156, 0.12);
+      --radius-xl: 34px;
+      --radius-lg: 26px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+      --content-width: 1720px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(255, 184, 210, 0.58), transparent 24%),
+        radial-gradient(circle at 100% 10%, rgba(253, 219, 230, 0.82), transparent 28%),
+        linear-gradient(180deg, #fff9fb 0%, #fff4f7 40%, #fff8fb 100%);
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity: 0.35;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 92%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: min(calc(100% - 24px), var(--content-width));
+      margin: 18px auto 40px;
+      display: grid;
+      grid-template-columns: 264px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,247,250,0.92));
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      border-radius: var(--radius-xl);
+      padding: 22px 16px 18px;
+      min-height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 6px 14px;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #ff93b7 0%, #f4518d 100%);
+      color: white;
+      box-shadow: 0 14px 28px rgba(244, 91, 144, 0.28);
+      font-size: 22px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 16px;
+      padding: 13px 14px;
+      color: #4d3d47;
+      transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    }
+
+    .nav-item:hover {
+      transform: translateX(2px);
+      background: rgba(255, 240, 246, 0.86);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #ff82ab 0%, #f45b90 100%);
+      color: white;
+      box-shadow: 0 16px 30px rgba(244, 91, 144, 0.24);
+    }
+
+    .nav-icon {
+      width: 28px;
+      text-align: center;
+      font-size: 16px;
+      opacity: 0.92;
+    }
+
+    .sidebar-card {
+      margin-top: auto;
+      padding: 18px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 152, 188, 0.92), rgba(245, 88, 143, 0.98));
+      color: white;
+      box-shadow: 0 24px 44px rgba(244, 91, 144, 0.22);
+    }
+
+    .sidebar-card strong {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.65;
+      opacity: 0.92;
+    }
+
+    .sidebar-card button {
+      margin-top: 16px;
+      width: 100%;
+      border: none;
+      background: white;
+      color: var(--pink-deep);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 12px 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .user-chip strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .vip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 217, 147, 0.25);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .stage {
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,249,251,0.96));
+      border: 1px solid rgba(255,255,255,0.92);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      scroll-margin-top: 18px;
+      min-height: calc(100vh - 36px);
+    }
+
+    .stage[hidden] {
+      display: none;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 14px;
+    }
+
+    .stage-header h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+
+    .stage-header h2 .index {
+      color: var(--pink-deep);
+      margin-right: 10px;
+    }
+
+    .stage-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 48ch;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(244, 91, 144, 0.18);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff82ab 0%, #f45b90 100%);
+      color: white;
+    }
+
+    .btn-soft {
+      background: rgba(255, 236, 243, 0.92);
+      color: var(--pink-deep);
+      border: 1px solid rgba(244, 91, 144, 0.16);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.86);
+      color: #6c5260;
+      border: 1px solid rgba(244, 91, 144, 0.12);
+    }
+
+    .stage-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .knowledge-grid {
+      grid-template-columns: 240px minmax(0, 1.2fr) 280px;
+    }
+
+    .template-grid {
+      grid-template-columns: 200px minmax(0, 1.15fr) 360px;
+    }
+
+    .variation-grid {
+      grid-template-columns: 1.2fr 1fr 280px;
+    }
+
+    .pane {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.92);
+      border-radius: 28px;
+      padding: 16px;
+      min-width: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+
+    .pane-scroll {
+      max-height: calc(100vh - 160px);
+      overflow: auto;
+      scrollbar-width: thin;
+    }
+
+    .scroll-list {
+      max-height: 260px;
+      overflow: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+    }
+
+    .scroll-list.tall {
+      max-height: 320px;
+    }
+
+    .pane-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .pane-title h3,
+    .pane-title h4 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .upload-box,
+    .empty-box,
+    .stat-box,
+    .filter-box,
+    .option-card,
+    .api-box,
+    .preview-box,
+    .result-card {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+    }
+
+    .upload-box {
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,245,249,0.92));
+    }
+
+    .empty-box {
+      padding: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .video-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .video-item,
+    .template-card {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(244, 91, 144, 0.14);
+      background: rgba(255,255,255,0.78);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .video-item:hover,
+    .template-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(244, 91, 144, 0.34);
+    }
+
+    .thumb {
+      width: 62px;
+      height: 62px;
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.36)),
+        linear-gradient(135deg, #69414f, #1c1520);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thumb::after {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: 10px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255, 220, 194, 0.88), transparent 18%),
+        radial-gradient(circle at 68% 36%, rgba(255, 231, 214, 0.86), transparent 18%),
+        linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+    }
+
+    .video-item h4,
+    .template-card h4 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      border: 1px solid rgba(244, 91, 144, 0.14);
+      background: rgba(255,255,255,0.92);
+      color: var(--pink-deep);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .status {
+      color: #55bc75;
+      font-weight: 700;
+    }
+
+    .link-more {
+      color: var(--pink-deep);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 8px 0 2px;
+    }
+
+    .analysis-hero {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .poster {
+      aspect-ratio: 3 / 4;
+      width: 100%;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.55)),
+        radial-gradient(circle at 35% 32%, rgba(255, 229, 212, 0.78), transparent 18%),
+        radial-gradient(circle at 63% 28%, rgba(255, 236, 223, 0.9), transparent 17%),
+        linear-gradient(135deg, #6a413f 0%, #0f0e18 100%);
+      box-shadow: 0 24px 40px rgba(52, 20, 41, 0.18);
+    }
+
+    .poster::before,
+    .preview-style::before,
+    .style-thumb::before {
+      content: "";
+      position: absolute;
+      left: 12%;
+      top: 17%;
+      width: 26%;
+      height: 52%;
+      border-radius: 999px 999px 42px 42px;
+      background: linear-gradient(180deg, rgba(255,234,223,0.96), rgba(214,179,166,0.8));
+      filter: blur(0.2px);
+    }
+
+    .poster::after,
+    .preview-style::after,
+    .style-thumb::after {
+      content: "";
+      position: absolute;
+      right: 14%;
+      top: 12%;
+      width: 30%;
+      height: 58%;
+      border-radius: 999px 999px 46px 46px;
+      background: linear-gradient(180deg, rgba(255,236,226,0.98), rgba(208,176,160,0.82));
+      filter: blur(0.2px);
+    }
+
+    .playbar {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(255,255,255,0.92);
+      font-size: 13px;
+    }
+
+    .playbar::after {
+      content: "";
+      flex: 1;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.95) 42%, rgba(255,255,255,0.28) 42%);
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 18px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .detail-meta strong,
+    .mini-stat strong,
+    .data-block strong,
+    .template-info strong,
+    .result-card strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .segment-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .segment-table th,
+    .segment-table td {
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(244, 91, 144, 0.08);
+    }
+
+    .segment-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--pink-soft);
+      color: var(--pink-deep);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .info-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-card {
+      padding: 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(244, 91, 144, 0.12);
+    }
+
+    .mini-role,
+    .dialog-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 52% 34%, rgba(255,236,223,0.88), transparent 18%),
+        linear-gradient(135deg, #6b4547, #1b1117);
+    }
+
+    .scene-thumb,
+    .style-thumb {
+      width: 100%;
+      height: 96px;
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.14), rgba(0,0,0,0.42)),
+        linear-gradient(135deg, #765243, #1b151f);
+    }
+
+    .style-thumb {
+      height: 88px;
+    }
+
+    .search {
+      position: relative;
+      min-width: 180px;
+    }
+
+    .search input {
+      width: 100%;
+      border: 1px solid rgba(244, 91, 144, 0.12);
+      background: rgba(255,255,255,0.76);
+      border-radius: 999px;
+      padding: 12px 16px 12px 38px;
+      color: var(--text);
+    }
+
+    .search::before {
+      content: "⌕";
+      position: absolute;
+      left: 14px;
+      top: 9px;
+      color: #d586a4;
+      font-size: 16px;
+    }
+
+    .filter-group {
+      display: grid;
+      gap: 16px;
+    }
+
+    .filter-group h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .filter-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .filter-pill {
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      color: #674f5d;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(244, 91, 144, 0.08);
+    }
+
+    .filter-pill.active {
+      background: linear-gradient(135deg, rgba(255, 126, 170, 0.94), rgba(244, 91, 144, 0.96));
+      color: white;
+      border-color: transparent;
+    }
+
+    .template-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-height: 430px;
+      overflow: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+    }
+
+    .template-gallery .template-card {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+    }
+
+    .template-gallery .thumb {
+      width: 100%;
+      height: 90px;
+    }
+
+    .template-badges,
+    .tiny-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tiny-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 236, 243, 0.88);
+      color: var(--pink-deep);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .template-side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .template-feature {
+      padding: 14px;
+      border-radius: 24px;
+      background: var(--surface-strong);
+      border: 1px solid var(--line);
+    }
+
+    .template-feature .thumb {
+      width: 100%;
+      height: 92px;
+      margin-bottom: 12px;
+    }
+
+    .dialog-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      max-height: 300px;
+      overflow: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+    }
+
+    .dialog-row {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,247,250,0.92);
+      border: 1px solid rgba(244, 91, 144, 0.08);
+    }
+
+    .dialog-text {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .dialog-text strong {
+      color: var(--text);
+      font-size: 13px;
+      margin: 0 0 2px;
+    }
+
+    .template-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .template-info,
+    .data-block,
+    .mini-stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.88);
+      border: 1px solid rgba(244, 91, 144, 0.08);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .variation-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.68);
+      border: 1px solid rgba(244, 91, 144, 0.08);
+    }
+
+    .step-index {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--pink-soft);
+      color: var(--pink-deep);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .step strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .step span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-grid.single {
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #4c3540;
+    }
+
+    label span {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(244, 91, 144, 0.12);
+      background: rgba(255,255,255,0.9);
+      border-radius: 16px;
+      padding: 13px 14px;
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 112px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(244, 91, 144, 0.42);
+      box-shadow: 0 0 0 4px rgba(244, 91, 144, 0.08);
+    }
+
+    .range-wrap {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
+    .range-value {
+      min-width: 72px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 10px 12px;
+      background: var(--pink-soft);
+      color: var(--pink-deep);
+      font-weight: 700;
+    }
+
+    .option-card,
+    .api-box,
+    .preview-box,
+    .result-card {
+      padding: 16px;
+    }
+
+    .option-card h4,
+    .api-box h4,
+    .preview-box h4,
+    .result-card h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .subject-box {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .mapping-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mapping-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,247,250,0.88);
+      font-size: 13px;
+    }
+
+    .mapping-row strong {
+      font-size: 13px;
+    }
+
+    .mutate-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mutate-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,247,250,0.88);
+      border: 1px solid rgba(244, 91, 144, 0.08);
+      font-size: 13px;
+    }
+
+    .prompt-box {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(244, 91, 144, 0.12);
+      line-height: 1.75;
+      font-size: 13px;
+      color: #5e4756;
+    }
+
+    .auth-shell {
+      max-width: 560px;
+      margin: 40px auto 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .auth-card,
+    .settings-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(244, 91, 144, 0.12);
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .notice {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 236, 243, 0.88);
+      color: var(--pink-deep);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,247,250,0.88);
+      font-size: 13px;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      border: 1px solid rgba(244, 91, 144, 0.28);
+      background: white;
+      display: inline-grid;
+      place-items: center;
+      color: white;
+      font-size: 12px;
+    }
+
+    .checkbox.active {
+      background: var(--pink);
+      border-color: transparent;
+    }
+
+    .api-box code {
+      display: block;
+      padding: 14px;
+      border-radius: 16px;
+      background: #241820;
+      color: #ffeaf2;
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      margin-top: 10px;
+    }
+
+    .preview-box {
+      min-height: 200px;
+      background:
+        linear-gradient(180deg, rgba(42,18,31,0.96), rgba(22,10,18,0.98)),
+        linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
+      color: #ffe7f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-style {
+      position: absolute;
+      inset: auto 18px 16px auto;
+      width: 118px;
+      height: 138px;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.2)),
+        linear-gradient(135deg, #5f3942, #120d15);
+      opacity: 0.92;
+    }
+
+    .preview-box p,
+    .preview-box li {
+      color: rgba(255, 233, 241, 0.86);
+    }
+
+    .preview-box ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      line-height: 1.75;
+      max-width: calc(100% - 170px);
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .result-card .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .label-badge {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--pink-soft);
+      color: var(--pink-deep);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(244,91,144,0.18), transparent);
+      margin: 18px 0;
+    }
+
+    @media (max-width: 1440px) {
+      .knowledge-grid,
+      .template-grid,
+      .variation-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .template-gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        min-height: auto;
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .variation-steps,
+      .analysis-hero,
+      .template-info-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stage {
+        min-height: auto;
+      }
+
+      .pane-scroll,
+      .scroll-list,
+      .scroll-list.tall,
+      .template-gallery,
+      .dialog-list {
+        max-height: none;
+        overflow: visible;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        width: min(calc(100% - 14px), var(--content-width));
+        margin-top: 10px;
+      }
+
+      .stage,
+      .sidebar {
+        border-radius: 24px;
+        padding: 18px;
+      }
+
+      .stage-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .nav {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .template-gallery {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-box ul {
+        max-width: 100%;
+      }
+
+      .preview-style {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">🎬</div>
+        <div>
+          <h1>短剧裂变平台</h1>
+          <p>一键生成爆款短剧<br />知识拆解、模板复用、创意裂变</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item active" href="#knowledge" data-view="knowledge"><span class="nav-icon">☑</span><span>短剧知识库</span></a>
+        <a class="nav-item" href="#templates" data-view="templates"><span class="nav-icon">✦</span><span>短剧模板库</span></a>
+        <a class="nav-item" href="#variation" data-view="variation"><span class="nav-icon">⚡</span><span>创意裂变</span></a>
+        <a class="nav-item" href="#staff" data-view="staff"><span class="nav-icon">⚙</span><span>人员设置</span></a>
+        <a class="nav-item" href="#knowledge" data-view="knowledge"><span class="nav-icon">⌂</span><span>工作台</span></a>
+        <a class="nav-item" href="#templates" data-view="templates"><span class="nav-icon">◔</span><span>数据中心</span></a>
+        <a class="nav-item" href="#variation" data-view="variation"><span class="nav-icon">☷</span><span>我的作品</span></a>
+        <a class="nav-item" href="#templates" data-view="templates"><span class="nav-icon">☆</span><span>我的收藏</span></a>
+      </nav>
+
+      <div class="sidebar-card">
+        <strong>新手教程</strong>
+        <p>3 分钟快速上手：如何从一条短剧视频拆出可反复使用的开头模板。</p>
+        <button type="button">立即学习</button>
+      </div>
+
+      <div class="user-chip">
+        <div>
+          <strong>用户名</strong>
+          <div class="meta">创作者工作区</div>
+        </div>
+        <span class="vip">VIP</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="stage" id="knowledge" data-stage="knowledge">
+        <div class="stage-header">
+          <div>
+            <h2><span class="index">图1</span>短剧知识库</h2>
+            <p>上传短剧视频后，系统在同一工作台内完成结构分析、角色识别和标签归纳，避免整页过长。</p>
+          </div>
+          <div class="toolbar">
+            <div class="mini-stat" style="padding:10px 14px;">
+              <strong>知识库</strong>
+              <div style="font-size:22px;font-weight:800;" id="kbCount">0</div>
+            </div>
+            <button class="btn btn-primary" id="analyzeBtn" type="button">上传并识别</button>
+            <button class="btn btn-soft" id="seedExamplesBtn" type="button">恢复示例数据</button>
+          </div>
+        </div>
+
+        <div class="stage-grid knowledge-grid">
+          <div class="pane pane-scroll">
+            <div class="pane-title">
+              <h3>已上传视频</h3>
+            </div>
+            <div class="upload-box">
+              <div class="form-grid">
+                <label>
+                  视频文件
+                  <input id="videoUpload" type="file" accept="video/*" />
+                </label>
+                <label>
+                  短剧标题
+                  <input id="kbTitle" type="text" placeholder="例如：闪婚后我让总裁跪着追妻" />
+                </label>
+                <label>
+                  题材类型
+                  <select id="kbGenre">
+                    <option value="豪门逆袭">豪门逆袭</option>
+                    <option value="家庭冲突">家庭冲突</option>
+                    <option value="复仇爽感">复仇爽感</option>
+                    <option value="悬疑反转">悬疑反转</option>
+                    <option value="甜虐情感">甜虐情感</option>
+                  </select>
+                </label>
+                <label>
+                  识别目标
+                  <select id="kbFramework">
+                    <option value="3秒冲突钩子">3秒冲突钩子</option>
+                    <option value="身份反差开局">身份反差开局</option>
+                    <option value="羞辱后打脸">羞辱后打脸</option>
+                    <option value="误会引爆悬念">误会引爆悬念</option>
+                  </select>
+                </label>
+                <label>
+                  补充备注
+                  <textarea id="kbNotes" placeholder="例如：重点识别角色关系、爆点台词、前 20 秒反转节奏"></textarea>
+                </label>
+              </div>
+            </div>
+            <div id="knowledgeList" class="video-list scroll-list tall" style="margin-top:14px;"></div>
+            <div class="link-more">查看更多 〉</div>
+          </div>
+
+          <div class="pane pane-scroll">
+            <div class="pane-title">
+              <h3 id="analysisTitle">《婚礼上总裁认错白月光》开头片段分析</h3>
+              <button class="btn btn-soft" id="saveCurrentKnowledgeBtn" type="button">存为模板</button>
+            </div>
+            <div class="analysis-hero">
+              <div class="poster">
+                <div class="playbar">▶ 0:00 / 0:15</div>
+              </div>
+              <div class="detail-grid">
+                <div class="detail-meta" id="analysisMeta">
+                  <div><strong>时长</strong><div>15 秒</div></div>
+                  <div><strong>类型</strong><div>甜宠 / 都市 / 先婚后爱</div></div>
+                  <div><strong>上传时间</strong><div>2024-05-20</div></div>
+                  <div><strong>分辨率</strong><div>1080 × 1920</div></div>
+                </div>
+                <div class="data-block" id="analysisSummary">
+                  <strong>内容简介</strong>
+                  女主被迫闪婚，先婚后爱甜蜜互动开启前隐藏反转线索。
+                </div>
+                <div class="data-block">
+                  <strong>片段分镜解析</strong>
+                  <table class="segment-table" id="segmentTable">
+                    <thead>
+                      <tr>
+                        <th>时间段</th>
+                        <th>画面内容</th>
+                        <th>角色</th>
+                        <th>场景</th>
+                        <th>情绪</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <div class="data-block">
+                  <strong>标签分类</strong>
+                  <div id="analysisTags" class="tag-row"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane pane-scroll">
+            <div class="pane-title">
+              <h3>AI 识别结果</h3>
+            </div>
+            <div class="info-stack" id="analysisSidePanel"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage" id="templates" data-stage="templates" hidden>
+        <div class="stage-header">
+          <div>
+            <h2><span class="index">图2</span>短剧模板库</h2>
+            <p>左侧筛选、中间模板列表、右侧模板详情都压回单屏视野里，减少上下滚动距离。</p>
+          </div>
+          <div class="toolbar">
+            <div class="search"><input type="text" placeholder="搜索模板名称或关键词..." /></div>
+            <div class="mini-stat" style="padding:10px 14px;">
+              <strong>模板数</strong>
+              <div style="font-size:22px;font-weight:800;" id="templateCount">0</div>
+            </div>
+            <button class="btn btn-soft" id="loadFromKnowledgeBtn" type="button">从知识库带入</button>
+            <button class="btn btn-primary" id="saveTemplateBtn" type="button">新建模板</button>
+          </div>
+        </div>
+
+        <div class="stage-grid template-grid">
+          <div class="pane pane-scroll">
+            <div class="filter-group">
+              <div>
+                <h4>类型筛选</h4>
+                <div class="filter-list">
+                  <div class="filter-pill active">全部类型</div>
+                  <div class="filter-pill">热门</div>
+                  <div class="filter-pill">逆袭</div>
+                  <div class="filter-pill">重生</div>
+                  <div class="filter-pill">复仇</div>
+                  <div class="filter-pill">甜宠</div>
+                </div>
+              </div>
+              <div>
+                <h4>场景筛选</h4>
+                <div class="filter-list">
+                  <div class="filter-pill active">全部场景</div>
+                  <div class="filter-pill">豪门宴会</div>
+                  <div class="filter-pill">婚礼现场</div>
+                  <div class="filter-pill">医院冲突</div>
+                  <div class="filter-pill">商战办公室</div>
+                </div>
+              </div>
+              <div>
+                <h4>时长筛选</h4>
+                <div class="filter-list">
+                  <div class="filter-pill active">全部时长</div>
+                  <div class="filter-pill">15 秒内</div>
+                  <div class="filter-pill">15-30 秒</div>
+                  <div class="filter-pill">30-60 秒</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane pane-scroll">
+            <div class="upload-box">
+              <div class="form-grid">
+                <label>
+                  模板名称
+                  <input id="templateName" type="text" placeholder="例如：豪门婚礼逆袭模板" />
+                </label>
+                <label>
+                  来源知识库
+                  <select id="templateSource"></select>
+                  <span>可选知识库条目，也支持手动创建。</span>
+                </label>
+                <label>
+                  角色设定
+                  <input id="templateRoles" type="text" placeholder="女主：隐忍反击；男主：冷面后悔；反派：刻薄继母" />
+                </label>
+                <label>
+                  开头爆点
+                  <input id="templateHook" type="text" placeholder="例如：婚礼现场被羞辱，身份当场反转" />
+                </label>
+              </div>
+              <div class="form-grid single" style="margin-top:14px;">
+                <label>
+                  关键台词框架
+                  <textarea id="templateLines" placeholder="例如：1. 羞辱台词 2. 反击台词 3. 身份揭晓台词 4. 下集悬念台词"></textarea>
+                </label>
+              </div>
+            </div>
+            <div id="templateList" class="template-gallery" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="pane pane-scroll template-side">
+            <div class="template-feature">
+              <h3 id="templateFeatureTitle" style="margin:0 0 8px;font-size:28px;">豪门婚礼逆袭模板</h3>
+              <div class="tiny-tags" id="templateFeatureTags">
+                <span class="tiny-tag">豪门</span>
+                <span class="tiny-tag">逆袭</span>
+                <span class="tiny-tag">婚礼</span>
+              </div>
+              <div class="thumb"></div>
+              <div class="meta" id="templateFeatureMeta">使用 1.2w · 收藏 856</div>
+              <div class="dialog-list" id="templateFeatureDialogs"></div>
+            </div>
+            <div class="template-info-grid">
+              <div class="template-info" id="templateInfoBox"></div>
+              <div class="template-info" id="templateAiBox"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage" id="variation" data-stage="variation" hidden>
+        <div class="stage-header">
+          <div>
+            <h2><span class="index">图3</span>创意裂变</h2>
+            <p>把模板、关系、数量、预览和结果压成更紧凑的三栏工作台，减少页面纵向拉伸。</p>
+          </div>
+          <div class="toolbar">
+            <div class="mini-stat" style="padding:10px 14px;">
+              <strong>本轮裂变</strong>
+              <div style="font-size:22px;font-weight:800;" id="ideaCount">0</div>
+            </div>
+            <button class="btn btn-soft" id="generateApiPayloadBtn" type="button">生成 API 请求示例</button>
+            <button class="btn btn-primary" id="generateIdeasBtn" type="button">开始生成</button>
+          </div>
+        </div>
+
+        <div class="variation-steps">
+          <div class="step"><div class="step-index">1</div><div><strong>模板选择</strong><span>先选当前要裂变的视频模板</span></div></div>
+          <div class="step"><div class="step-index">2</div><div><strong>裂变方式</strong><span>勾选角色、台词、画风、场景</span></div></div>
+          <div class="step"><div class="step-index">3</div><div><strong>主体替换</strong><span>给勾选角色指定新主体库</span></div></div>
+          <div class="step"><div class="step-index">4</div><div><strong>生成视频</strong><span>确认提示词后再出画面</span></div></div>
+        </div>
+
+        <div class="stage-grid variation-grid">
+          <div class="pane pane-scroll">
+            <div class="stack">
+              <div class="upload-box">
+                <div class="form-grid">
+                  <label>
+                    1. 选择模板
+                    <select id="variationTemplate"></select>
+                  </label>
+                  <label>
+                    裂变数量
+                    <div class="range-wrap">
+                      <input id="variationCount" type="range" min="1" max="8" value="3" />
+                      <div id="variationCountLabel" class="range-value">3 条</div>
+                    </div>
+                  </label>
+                  <label>
+                    基础角色补充
+                    <input id="variationBaseRoles" type="text" placeholder="例如：高冷总裁 / 倔强女主 / 阴阳婆婆" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="option-card">
+                <h4>2. 裂变方式选择</h4>
+                <p class="subtle">只会替换你勾选的部分，没勾选的部分默认保持模板原样。</p>
+                <div class="mutate-grid">
+                  <label class="mutate-item">
+                    <span>角色</span>
+                    <input id="mutateCharacters" type="checkbox" />
+                  </label>
+                  <label class="mutate-item">
+                    <span>台词</span>
+                    <input id="mutateLines" type="checkbox" />
+                  </label>
+                  <label class="mutate-item">
+                    <span>画风</span>
+                    <input id="mutateStyle" type="checkbox" />
+                  </label>
+                  <label class="mutate-item">
+                    <span>场景</span>
+                    <input id="mutateScene" type="checkbox" />
+                  </label>
+                </div>
+                <div class="subject-box" id="characterMutationBox" hidden>
+                  <label>
+                    勾选要替换的模板角色
+                    <div class="check-list" id="templateRoleChecklist"></div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="option-card" id="subjectMappingBox" hidden>
+                <h4>3. 角色主体替换</h4>
+                <p class="subtle">只有勾选了“角色”并选择具体模板角色后，才需要给每个角色指定可替换主体库。</p>
+                <div class="mapping-list" id="subjectMappingList"></div>
+              </div>
+
+              <div class="api-box">
+                <h4>4. 生成视频提示词</h4>
+                <div class="form-grid">
+                  <label>
+                    台词替换方向
+                    <input id="variationTone" type="text" placeholder="例如：更狠、更短、更适合前 5 秒钩子" />
+                  </label>
+                  <label>
+                    画风替换方向
+                    <input id="variationStylePrompt" type="text" placeholder="例如：韩剧感、电影感、冷白光" />
+                  </label>
+                  <label>
+                    场景替换方向
+                    <input id="variationScenePrompt" type="text" placeholder="例如：婚礼宴会厅改为医院走廊" />
+                  </label>
+                  <label>
+                    视频模型 API 地址
+                    <input id="videoApiUrl" type="text" placeholder="例如：https://api.your-video-model.com/generate" />
+                  </label>
+                  <label>
+                    模型名称
+                    <input id="videoModelName" type="text" placeholder="例如：dramatic-opening-v1" />
+                  </label>
+                  <label>
+                    API Key / Token
+                    <input id="videoApiKey" type="text" placeholder="预留鉴权字段" />
+                  </label>
+                </div>
+                <div class="prompt-box" id="variationPromptPreview" style="margin-top:12px;">
+                  请先选择模板，并勾选需要变化的部分。
+                </div>
+                <code id="apiPayloadPreview">{
+  "templateId": "",
+  "count": 3,
+  "model": "",
+  "apiUrl": "",
+  "prompt": ""
+}</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane pane-scroll">
+            <div class="preview-box" id="previewBox">
+              <h4>等待生成创意开头</h4>
+              <p>确认上面的变更项后，这里会展示“保留什么不变、替换什么元素”的最终画面提示词方向。</p>
+              <ul>
+                <li>未勾选项保持原视频模板不变</li>
+                <li>勾选项按新角色 / 新台词 / 新场景 / 新画风替换</li>
+                <li>角色替换时支持逐个指定主体库</li>
+                <li>提示词确认后再进入视频生成</li>
+              </ul>
+              <div class="preview-style"></div>
+            </div>
+          </div>
+
+          <div class="pane pane-scroll">
+            <div class="pane-title">
+              <h3>裂变结果</h3>
+            </div>
+            <div id="outputList" class="result-list scroll-list tall"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stage" id="staff" data-stage="staff" hidden>
+        <div class="stage-header">
+          <div>
+            <h2><span class="index">图4</span>人员设置</h2>
+            <p>该页面需要账号密码验证后才可进入，用于管理团队成员、角色权限和可用主体库。</p>
+          </div>
+        </div>
+
+        <div id="staffAuthView" class="auth-shell">
+          <div class="auth-card">
+            <h3 style="margin:0 0 10px;">人员设置登录</h3>
+            <p class="subtle">请输入账密后进入设置后台。当前为前端原型校验，可后续替换成真实登录接口。</p>
+            <div class="form-grid" style="margin-top:14px;">
+              <label>
+                账号
+                <input id="staffUsername" type="text" placeholder="例如：admin" />
+              </label>
+              <label>
+                密码
+                <input id="staffPassword" type="password" placeholder="请输入密码" />
+              </label>
+            </div>
+            <div id="staffAuthMessage" class="notice" style="margin-top:14px;">默认演示账号：admin，密码：duanju123</div>
+            <div class="actions">
+              <button class="btn btn-primary" id="staffLoginBtn" type="button">进入人员设置</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="staffSettingsView" class="auth-shell" hidden>
+          <div class="settings-card">
+            <div class="pane-title">
+              <h3>团队成员与权限</h3>
+              <button class="btn btn-soft" id="staffLogoutBtn" type="button">退出登录</button>
+            </div>
+            <div class="settings-grid">
+              <div class="settings-card">
+                <strong>运营账号</strong>
+                <div class="meta">负责知识库上传、模板审核、素材管理</div>
+                <div class="tiny-tags" style="margin-top:10px;">
+                  <span class="tiny-tag">知识库编辑</span>
+                  <span class="tiny-tag">模板创建</span>
+                </div>
+              </div>
+              <div class="settings-card">
+                <strong>导演账号</strong>
+                <div class="meta">负责裂变策略、视频提示词和成片审批</div>
+                <div class="tiny-tags" style="margin-top:10px;">
+                  <span class="tiny-tag">裂变配置</span>
+                  <span class="tiny-tag">视频生成</span>
+                </div>
+              </div>
+              <div class="settings-card">
+                <strong>主体库管理</strong>
+                <div class="meta">管理可替换角色主体、角色包和场景素材库</div>
+                <div class="tiny-tags" style="margin-top:10px;">
+                  <span class="tiny-tag">角色主体</span>
+                  <span class="tiny-tag">场景素材</span>
+                </div>
+              </div>
+              <div class="settings-card">
+                <strong>权限开关</strong>
+                <div class="meta">控制谁可以导出模板、删除知识库、提交视频生成</div>
+                <div class="tiny-tags" style="margin-top:10px;">
+                  <span class="tiny-tag">导出模板</span>
+                  <span class="tiny-tag">生成审批</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const storageKeys = {
+      knowledge: "shortdrama-kb-v1",
+      templates: "shortdrama-templates-v1"
+    };
+
+    const defaultKnowledge = [
+      {
+        id: "kb-1",
+        title: "离婚当天她身价曝光",
+        genre: "豪门逆袭",
+        sourceFile: "lihun_fanpai_opening.mp4",
+        framework: "身份反差开局",
+        notes: "前 15 秒完成轻视、揭榜、打脸三连。",
+        roles: ["隐忍前妻", "势利前夫", "嘴硬婆婆", "助理证人"],
+        lineFramework: [
+          "羞辱：你这种人离了我什么都不是。",
+          "反击：不好意思，离婚协议我已经签完了。",
+          "揭晓：沈总，您名下的集团正在等您回归。",
+          "悬念：前夫这才发现她才是真正的掌权人。"
+        ],
+        structure: [
+          "0-3 秒：公开羞辱，迅速建立情绪张力。",
+          "3-8 秒：看似弱势的主角平静反击，铺垫身份反转。",
+          "8-15 秒：第三方证据到场，直接打脸现场角色。",
+          "15-20 秒：抛出后续追妻或复仇悬念。"
+        ]
+      },
+      {
+        id: "kb-2",
+        title: "婚礼上总裁认错白月光",
+        genre: "甜虐情感",
+        sourceFile: "wedding_mistake_scene.mov",
+        framework: "误会引爆悬念",
+        notes: "重点分析误会台词和女主转身离场的情绪落点。",
+        roles: ["倔强女主", "迟钝总裁", "绿茶前任", "神秘孩子"],
+        lineFramework: [
+          "误会：你不是说这辈子只会娶我吗？",
+          "压抑：原来我才是你们笑话里的替身。",
+          "离场：孩子发烧了，我没空陪你演深情。",
+          "钩子：总裁听见孩子叫她妈妈，彻底慌了。"
+        ],
+        structure: [
+          "0-4 秒：婚礼现场突发对白，制造巨大误会。",
+          "4-10 秒：女主压抑崩溃，用一句短台词切断关系。",
+          "10-16 秒：孩子或第三人物出现，抛出隐藏真相。",
+          "16-20 秒：男主表情反转，推动观众追下一集。"
+        ]
+      }
+    ];
+
+    const defaultTemplates = [
+      {
+        id: "tpl-1",
+        name: "豪门打脸反转模板",
+        sourceId: "kb-1",
+        sourceName: "离婚当天她身价曝光",
+        roles: "隐忍前妻 / 势利前夫 / 刻薄长辈 / 到场证人",
+        hook: "公开羞辱后当场身份反转",
+        lines: "羞辱一句、冷静反击一句、证据揭晓一句、下集悬念一句"
+      },
+      {
+        id: "tpl-2",
+        name: "误会追妻悬念模板",
+        sourceId: "kb-2",
+        sourceName: "婚礼上总裁认错白月光",
+        roles: "倔强女主 / 迟钝总裁 / 挑拨前任 / 隐藏孩子",
+        hook: "婚礼误会引爆离场，孩子身份抛钩子",
+        lines: "误会质问、压抑离场、孩子出现、男主后悔"
+      }
+    ];
+
+    const state = {
+      knowledge: loadData(storageKeys.knowledge, defaultKnowledge),
+      templates: loadData(storageKeys.templates, defaultTemplates),
+      outputs: [],
+      staffAuthed: false
+    };
+
+    const staffCredentials = {
+      username: "admin",
+      password: "duanju123"
+    };
+
+    const refs = {
+      kbCount: document.getElementById("kbCount"),
+      templateCount: document.getElementById("templateCount"),
+      ideaCount: document.getElementById("ideaCount"),
+      knowledgeList: document.getElementById("knowledgeList"),
+      templateList: document.getElementById("templateList"),
+      templateSource: document.getElementById("templateSource"),
+      variationTemplate: document.getElementById("variationTemplate"),
+      outputList: document.getElementById("outputList"),
+      previewBox: document.getElementById("previewBox"),
+      apiPayloadPreview: document.getElementById("apiPayloadPreview"),
+      saveCurrentKnowledgeBtn: document.getElementById("saveCurrentKnowledgeBtn"),
+      variationCount: document.getElementById("variationCount"),
+      variationCountLabel: document.getElementById("variationCountLabel"),
+      videoUpload: document.getElementById("videoUpload"),
+      kbTitle: document.getElementById("kbTitle"),
+      kbGenre: document.getElementById("kbGenre"),
+      kbFramework: document.getElementById("kbFramework"),
+      kbNotes: document.getElementById("kbNotes"),
+      templateName: document.getElementById("templateName"),
+      templateRoles: document.getElementById("templateRoles"),
+      templateHook: document.getElementById("templateHook"),
+      templateLines: document.getElementById("templateLines"),
+      variationBaseRoles: document.getElementById("variationBaseRoles"),
+      variationTone: document.getElementById("variationTone"),
+      variationStylePrompt: document.getElementById("variationStylePrompt"),
+      variationScenePrompt: document.getElementById("variationScenePrompt"),
+      mutateCharacters: document.getElementById("mutateCharacters"),
+      mutateLines: document.getElementById("mutateLines"),
+      mutateStyle: document.getElementById("mutateStyle"),
+      mutateScene: document.getElementById("mutateScene"),
+      characterMutationBox: document.getElementById("characterMutationBox"),
+      templateRoleChecklist: document.getElementById("templateRoleChecklist"),
+      subjectMappingBox: document.getElementById("subjectMappingBox"),
+      subjectMappingList: document.getElementById("subjectMappingList"),
+      variationPromptPreview: document.getElementById("variationPromptPreview"),
+      videoApiUrl: document.getElementById("videoApiUrl"),
+      videoApiKey: document.getElementById("videoApiKey"),
+      videoModelName: document.getElementById("videoModelName"),
+      analysisTitle: document.getElementById("analysisTitle"),
+      analysisMeta: document.getElementById("analysisMeta"),
+      analysisSummary: document.getElementById("analysisSummary"),
+      segmentTable: document.querySelector("#segmentTable tbody"),
+      analysisTags: document.getElementById("analysisTags"),
+      analysisSidePanel: document.getElementById("analysisSidePanel"),
+      templateFeatureTitle: document.getElementById("templateFeatureTitle"),
+      templateFeatureMeta: document.getElementById("templateFeatureMeta"),
+      templateFeatureDialogs: document.getElementById("templateFeatureDialogs"),
+      templateFeatureTags: document.getElementById("templateFeatureTags"),
+      templateInfoBox: document.getElementById("templateInfoBox"),
+      templateAiBox: document.getElementById("templateAiBox"),
+      staffAuthView: document.getElementById("staffAuthView"),
+      staffSettingsView: document.getElementById("staffSettingsView"),
+      staffUsername: document.getElementById("staffUsername"),
+      staffPassword: document.getElementById("staffPassword"),
+      staffAuthMessage: document.getElementById("staffAuthMessage"),
+      staffLoginBtn: document.getElementById("staffLoginBtn"),
+      staffLogoutBtn: document.getElementById("staffLogoutBtn")
+    };
+
+    function loadData(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : structuredClone(fallback);
+      } catch (error) {
+        return structuredClone(fallback);
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(storageKeys.knowledge, JSON.stringify(state.knowledge));
+      localStorage.setItem(storageKeys.templates, JSON.stringify(state.templates));
+    }
+
+    function uid(prefix) {
+      return prefix + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function buildKnowledgeAnalysis(title, genre, framework, notes, sourceFile) {
+      const roleMap = {
+        "豪门逆袭": ["隐忍女主", "傲慢豪门", "偏心长辈", "关键证人"],
+        "家庭冲突": ["受压媳妇", "强势婆婆", "沉默丈夫", "反转帮手"],
+        "复仇爽感": ["黑化主角", "背叛前任", "伪善盟友", "揭密角色"],
+        "悬疑反转": ["失忆主角", "操控反派", "隐藏证人", "局中人"],
+        "甜虐情感": ["倔强女主", "迟钝男主", "挑拨前任", "秘密孩子"]
+      };
+
+      const structureMap = {
+        "3秒冲突钩子": [
+          "0-3 秒：用一句攻击性对白迅速拉满冲突。",
+          "3-7 秒：主角短暂停顿，观众等待反击。",
+          "7-14 秒：反转证据或身份标签出现。",
+          "14-20 秒：抛出更大后果，逼观众继续追。"
+        ],
+        "身份反差开局": [
+          "0-4 秒：先展示主角被轻视的处境。",
+          "4-9 秒：通过动作或旁人台词埋身份伏笔。",
+          "9-15 秒：关键人物登场，揭露真实身份。",
+          "15-20 秒：把羞辱者留在后悔情绪里。"
+        ],
+        "羞辱后打脸": [
+          "0-5 秒：反派公开羞辱主角。",
+          "5-10 秒：主角平静回击，形成压强反差。",
+          "10-16 秒：凭证、转账或权力出现，完成打脸。",
+          "16-20 秒：留下复仇升级或追妻悬念。"
+        ],
+        "误会引爆悬念": [
+          "0-4 秒：误会对白直接切入，避免铺垫过长。",
+          "4-10 秒：一方离场或决裂，把情绪推到顶点。",
+          "10-16 秒：第三人或孩子出现，揭出隐藏关系。",
+          "16-20 秒：让对方后知后觉，完成追更钩子。"
+        ]
+      };
+
+      const lineMap = {
+        "3秒冲突钩子": [
+          "挑衅：你也配站在这里？",
+          "停顿：主角没有立刻解释，先让情绪发酵。",
+          "反击：那你最好看清楚我是谁。",
+          "钩子：全场安静后，下一秒更大的身份揭晓。"
+        ],
+        "身份反差开局": [
+          "轻视：她不过就是个没人要的替身。",
+          "伏笔：门口那辆车，是来接谁的？",
+          "揭晓：夫人，董事会的人已经等您很久了。",
+          "后果：刚才羞辱她的人彻底慌了。"
+        ],
+        "羞辱后打脸": [
+          "羞辱：你离开我，连饭都吃不起。",
+          "平静：我离开的从来不是你，是烂掉的人生。",
+          "打脸：这份股权转让，现在属于我。",
+          "追更：他跪下时，她只回头看了一眼。"
+        ],
+        "误会引爆悬念": [
+          "误会：原来你心里的人，从来都不是我。",
+          "决裂：今天这场婚礼，我退出。",
+          "揭密：孩子看到他时，脱口而出叫了一声爸爸。",
+          "悬念：男主终于意识到自己错过了什么。"
+        ]
+      };
+
+      return {
+        id: uid("kb"),
+        title: title || "未命名短剧",
+        genre,
+        sourceFile: sourceFile || "待补充视频文件",
+        framework,
+        notes: notes || "建议补充你希望系统重点识别的桥段、角色和爆点台词。",
+        roles: roleMap[genre] || roleMap["豪门逆袭"],
+        lineFramework: lineMap[framework] || lineMap["3秒冲突钩子"],
+        structure: structureMap[framework] || structureMap["3秒冲突钩子"]
+      };
+    }
+
+    function getKnowledgeDetailMeta(item) {
+      return {
+        duration: item.framework === "误会引爆悬念" ? "15 秒" : "18 秒",
+        type: item.genre + " / 都市 / 强情绪开局",
+        uploaded: item.id === "kb-2" ? "2024-05-20" : "2024-05-18",
+        resolution: "1080 × 1920"
+      };
+    }
+
+    function renderKnowledgeAnalysis(item) {
+      if (!item) return;
+      state.selectedKnowledgeId = item.id;
+      const meta = getKnowledgeDetailMeta(item);
+      refs.analysisTitle.textContent = "《" + item.title + "》开头片段分析";
+      refs.analysisMeta.innerHTML = `
+        <div><strong>时长</strong><div>${meta.duration}</div></div>
+        <div><strong>类型</strong><div>${meta.type}</div></div>
+        <div><strong>上传时间</strong><div>${meta.uploaded}</div></div>
+        <div><strong>分辨率</strong><div>${meta.resolution}</div></div>
+      `;
+      refs.analysisSummary.innerHTML = `
+        <strong>内容简介</strong>
+        ${item.notes}
+      `;
+
+      const segments = item.structure.map((line, index) => {
+        const timings = ["0-3s", "3-8s", "8-12s", "12-15s", "15-20s"];
+        const moods = ["紧张", "冷漠", "悬念", "爆点", "压迫"];
+        return {
+          time: timings[index] || timings[timings.length - 1],
+          frame: line.replace(/^\d+-\d+\s*秒：/, ""),
+          role: item.roles[index % item.roles.length],
+          scene: index < 2 ? "宴会厅" : "对峙现场",
+          mood: moods[index % moods.length]
+        };
+      });
+
+      refs.segmentTable.innerHTML = segments.map(segment => `
+        <tr>
+          <td>${segment.time}</td>
+          <td>${segment.frame}</td>
+          <td>${segment.role}</td>
+          <td>${segment.scene}</td>
+          <td>${segment.mood}</td>
+        </tr>
+      `).join("");
+
+      const tags = [item.genre, item.framework].concat(item.roles.slice(0, 4));
+      refs.analysisTags.innerHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join("");
+
+      refs.analysisSidePanel.innerHTML = `
+        <div class="mini-card">
+          <h4 style="margin:0 0 8px;">角色识别</h4>
+          ${item.roles.slice(0, 3).map(role => `
+            <div class="mini-role">
+              <div class="avatar"></div>
+              <div>
+                <div style="font-weight:700;">${role}</div>
+                <div class="meta">${item.genre} / 关键角色</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+        <div class="mini-card">
+          <h4 style="margin:0 0 10px;">场景识别</h4>
+          <div class="scene-thumb"></div>
+          <div class="meta" style="margin-top:10px;">宴会场景 / 对峙空间 / 情绪张力强</div>
+        </div>
+        <div class="mini-card">
+          <h4 style="margin:0 0 10px;">画风识别</h4>
+          <div class="style-thumb"></div>
+          <div class="meta" style="margin-top:10px;">现实风格 / 高清 / 电影感 / 暖光反差</div>
+        </div>
+      `;
+    }
+
+    function renderKnowledge() {
+      refs.kbCount.textContent = state.knowledge.length;
+      refs.knowledgeList.innerHTML = "";
+
+      if (!state.knowledge.length) {
+        refs.knowledgeList.innerHTML = '<div class="empty-box">知识库还没有内容，先上传一条短剧视频开始。</div>';
+        return;
+      }
+
+      state.knowledge.forEach((item, index) => {
+        const node = document.createElement("article");
+        node.className = "video-item";
+        node.innerHTML = `
+          <div class="thumb"></div>
+          <div>
+            <h4>${item.title}</h4>
+            <div class="meta">上传时间：2024-05-${index === 0 ? "20" : "18"}</div>
+            <div class="meta status">已解析</div>
+            <div class="item-actions">
+              <button class="mini-btn" type="button" data-save-template="${item.id}">存为模板</button>
+            </div>
+          </div>
+        `;
+        node.addEventListener("click", () => renderKnowledgeAnalysis(item));
+        refs.knowledgeList.appendChild(node);
+      });
+
+      renderKnowledgeAnalysis(state.knowledge[0]);
+    }
+
+    function renderTemplateOptions() {
+      const options = ['<option value="">手动创建</option>']
+        .concat(state.knowledge.map(item => `<option value="${item.id}">${item.title}</option>`));
+      refs.templateSource.innerHTML = options.join("");
+      refs.variationTemplate.innerHTML = state.templates.map(item => `<option value="${item.id}">${item.name}</option>`).join("");
+    }
+
+    function renderTemplateFeature(item) {
+      if (!item) return;
+      refs.templateFeatureTitle.textContent = item.name;
+      refs.templateFeatureMeta.textContent = "使用 1.2w · 收藏 856 · 来源：" + (item.sourceName || "手动创建");
+      refs.templateFeatureTags.innerHTML = item.hook.split(/[，、\s/]+/).filter(Boolean).slice(0, 4).map(tag => `<span class="tiny-tag">${tag}</span>`).join("");
+      refs.templateFeatureDialogs.innerHTML = item.lines.split(/[；\n]/).filter(Boolean).slice(0, 5).map((line, index) => `
+        <div class="dialog-row">
+          <div class="avatar"></div>
+          <div class="dialog-text">
+            <strong>${["开场白", "男主宣言", "冲突激化", "女主反击", "结尾悬念"][index] || "关键台词"}</strong>
+            <div>${line}</div>
+          </div>
+        </div>
+      `).join("");
+
+      refs.templateInfoBox.innerHTML = `
+        <strong>模板信息</strong>
+        适用类型：${item.sourceName || "自定义模板"}<br />
+        核心爆点：${item.hook}<br />
+        角色配置：${item.roles}<br />
+        模板来源：${item.sourceName || "手动创建"}
+      `;
+
+      refs.templateAiBox.innerHTML = `
+        <strong>AI 识别结果</strong>
+        主竞角色：${item.roles.split("/").slice(0, 2).join(" / ")}<br />
+        情绪基底：逆袭 / 误会 / 对峙 / 爆发<br />
+        剧情走向：强冲突开局，结尾留钩
+      `;
+    }
+
+    function renderTemplates() {
+      refs.templateCount.textContent = state.templates.length;
+      refs.templateList.innerHTML = "";
+
+      if (!state.templates.length) {
+        refs.templateList.innerHTML = '<div class="empty-box">模板库为空，先从知识库沉淀一个模板，或者手动新增。</div>';
+        return;
+      }
+
+      state.templates.forEach(item => {
+        const node = document.createElement("article");
+        node.className = "template-card";
+        node.innerHTML = `
+          <div class="thumb"></div>
+          <div>
+            <h4>${item.name}</h4>
+            <div class="meta">来源：${item.sourceName || "手动创建"}</div>
+            <div class="tiny-tags">${item.roles.split("/").slice(0, 3).map(role => `<span class="tiny-tag">${role.trim()}</span>`).join("")}</div>
+          </div>
+        `;
+        node.addEventListener("click", () => {
+          refs.variationTemplate.value = item.id;
+          renderTemplateFeature(item);
+          updateApiPayloadPreview();
+        });
+        refs.templateList.appendChild(node);
+      });
+
+      renderTemplateFeature(state.templates[0]);
+    }
+
+    function renderOutputs() {
+      refs.ideaCount.textContent = state.outputs.length;
+      refs.outputList.innerHTML = "";
+
+      if (!state.outputs.length) {
+        refs.outputList.innerHTML = '<div class="empty-box">还没有裂变结果。点击“开始生成”后，这里会出现多条可直接继续投喂视频模型的开头文案。</div>';
+        return;
+      }
+
+      state.outputs.forEach(output => {
+        const node = document.createElement("article");
+        node.className = "result-card";
+        node.innerHTML = `
+          <div class="head">
+            <div>
+              <h4>${output.title}</h4>
+              <div class="meta">模板：${output.templateName} · 角色：${output.baseRoles}</div>
+              <div class="meta">主体：${output.subjectLabel}</div>
+            </div>
+            <span class="label-badge">${output.variationLabel}</span>
+          </div>
+          <div class="subtle">${output.opening}</div>
+          <div class="divider"></div>
+          <div class="subtle">${output.conflict}</div>
+          <div class="subtle" style="margin-top:8px;">${output.keyLine}</div>
+          <div class="subtle" style="margin-top:8px;">${output.cliffhanger}</div>
+        `;
+        refs.outputList.appendChild(node);
+      });
+
+      const first = state.outputs[0];
+      refs.previewBox.innerHTML = `
+        <h4>${first.title}</h4>
+        <p>模板：${first.templateName} · 角色：${first.baseRoles} · 主体：${first.subjectLabel}</p>
+        <ul>
+          <li>${first.opening}</li>
+          <li>${first.conflict}</li>
+          <li>${first.keyLine}</li>
+          <li>${first.cliffhanger}</li>
+        </ul>
+        <div class="preview-style"></div>
+      `;
+    }
+
+    function fillTemplateFromKnowledge(itemId) {
+      const item = state.knowledge.find(entry => entry.id === itemId);
+      if (!item) return;
+      refs.templateName.value = item.title + "模板";
+      refs.templateRoles.value = item.roles.join(" / ");
+      refs.templateHook.value = item.structure[0];
+      refs.templateLines.value = item.lineFramework.join("\n");
+      refs.templateSource.value = item.id;
+    }
+
+    function saveTemplate(template) {
+      state.templates.unshift(template);
+      persist();
+      renderTemplateOptions();
+      renderTemplates();
+    }
+
+    function saveTemplateFromKnowledgeId(itemId) {
+      const item = state.knowledge.find(entry => entry.id === itemId);
+      if (!item) return;
+      saveTemplate(createTemplateFromKnowledge(item));
+      switchStage("templates");
+      history.replaceState(null, "", "#templates");
+    }
+
+    function createTemplateFromKnowledge(item) {
+      return {
+        id: uid("tpl"),
+        name: item.title + "模板",
+        sourceId: item.id,
+        sourceName: item.title,
+        roles: item.roles.join(" / "),
+        hook: item.structure[0],
+        lines: item.lineFramework.join("；")
+      };
+    }
+
+    function getCurrentTemplate() {
+      return state.templates.find(item => item.id === refs.variationTemplate.value) || state.templates[0];
+    }
+
+    function getVariationSelection() {
+      const changed = [];
+      if (refs.mutateCharacters.checked) changed.push("角色");
+      if (refs.mutateLines.checked) changed.push("台词");
+      if (refs.mutateStyle.checked) changed.push("画风");
+      if (refs.mutateScene.checked) changed.push("场景");
+      const unchanged = ["角色", "台词", "画风", "场景"].filter(item => !changed.includes(item));
+      return { changed, unchanged };
+    }
+
+    function renderVariationRoleOptions() {
+      const template = getCurrentTemplate();
+      if (!template) return;
+      const roles = template.roles.split("/").map(role => role.trim()).filter(Boolean);
+      refs.templateRoleChecklist.innerHTML = roles.map((role, index) => `
+        <label class="check-row">
+          <span>${role}</span>
+          <input type="checkbox" class="template-role-checkbox" value="${role}" ${index < 2 ? "checked" : ""} />
+        </label>
+      `).join("");
+      updateCharacterMutationVisibility();
+      renderSubjectMappings();
+    }
+
+    function getSelectedTemplateRoles() {
+      return Array.from(document.querySelectorAll(".template-role-checkbox:checked")).map(node => node.value);
+    }
+
+    function updateCharacterMutationVisibility() {
+      refs.characterMutationBox.hidden = !refs.mutateCharacters.checked;
+      refs.subjectMappingBox.hidden = !refs.mutateCharacters.checked || getSelectedTemplateRoles().length === 0;
+    }
+
+    function renderSubjectMappings() {
+      updateCharacterMutationVisibility();
+      if (!refs.mutateCharacters.checked) {
+        refs.subjectMappingList.innerHTML = "";
+        return;
+      }
+      const roles = getSelectedTemplateRoles();
+      refs.subjectMappingList.innerHTML = roles.map((role, index) => `
+        <div class="mapping-row">
+          <strong>${role}</strong>
+          <select class="subject-library-select" data-role="${role}">
+            <option value="">选择主体库</option>
+            <option value="${role}形象库A" ${index === 0 ? "selected" : ""}>${role}形象库A</option>
+            <option value="${role}形象库B">${role}形象库B</option>
+            <option value="通用婚恋角色库">通用婚恋角色库</option>
+          </select>
+          <input class="subject-upload-input" data-role="${role}" type="file" accept="image/*,video/*" />
+        </div>
+      `).join("");
+      updatePromptPreview();
+    }
+
+    function getSubjectMappings() {
+      return Array.from(document.querySelectorAll(".mapping-row")).map(row => {
+        const role = row.querySelector(".subject-library-select")?.dataset.role || "";
+        const preset = row.querySelector(".subject-library-select")?.value || "";
+        const uploadName = row.querySelector(".subject-upload-input")?.files?.[0]?.name || "";
+        return { role, preset, uploadName };
+      });
+    }
+
+    function buildFinalPrompt() {
+      const template = getCurrentTemplate();
+      if (!template) return "请先选择模板。";
+
+      const { changed, unchanged } = getVariationSelection();
+      if (!changed.length) {
+        return "请至少勾选一个需要变化的部分，例如角色、台词、画风或场景。";
+      }
+
+      const unchangedText = unchanged.length ? unchanged.map(item => `【${item}】`).join("") : "【无】";
+      const changedText = changed.map(item => `【${item}】`).join("");
+      const parts = [];
+
+      if (refs.mutateCharacters.checked) {
+        const mappings = getSubjectMappings();
+        const roleText = mappings.length
+          ? mappings.map(item => `${item.role}替换为${item.uploadName || item.preset || "新主体"}`).join("，")
+          : "角色替换为新主体";
+        parts.push("角色替换：" + roleText);
+      }
+      if (refs.mutateLines.checked && refs.variationTone.value.trim()) {
+        parts.push("台词方向：" + refs.variationTone.value.trim());
+      }
+      if (refs.mutateStyle.checked && refs.variationStylePrompt.value.trim()) {
+        parts.push("画风方向：" + refs.variationStylePrompt.value.trim());
+      }
+      if (refs.mutateScene.checked && refs.variationScenePrompt.value.trim()) {
+        parts.push("场景方向：" + refs.variationScenePrompt.value.trim());
+      }
+
+      return `保留该视频的${unchangedText}部分不变，${changedText}部分替换为新元素。基于模板《${template.name}》生成新画面。${parts.join("；")}。提示词确认后可生成画面。`;
+    }
+
+    function updatePromptPreview() {
+      const prompt = buildFinalPrompt();
+      refs.variationPromptPreview.textContent = prompt;
+      updateApiPayloadPreview();
+    }
+
+    function buildVariationOutput(template, baseRoles, tone, index, subjectLabel, promptText) {
+      const emphasis = [
+        "更快进入冲突",
+        "更强角色压制感",
+        "更狠反击台词",
+        "更悬念式结尾",
+        "更适合前 5 秒投流"
+      ];
+      const punch = emphasis[index % emphasis.length];
+
+      return {
+        title: template.name + " · 裂变 " + (index + 1),
+        templateName: template.name,
+        baseRoles: baseRoles || template.roles,
+        subjectLabel: subjectLabel || "未指定主体",
+        variationLabel: punch,
+        tone: tone || "保留模板原有台词节奏",
+        promptText,
+        opening: "开头镜头：" + template.hook.replace("0-3 秒：", "").replace("0-4 秒：", "") + "，让主角一出场就置身高压冲突。",
+        conflict: "冲突推进：" + (tone || "保留原设") + "，让 " + (baseRoles || template.roles).split("/")[0].trim() + " 在两句对白内完成气场反转。",
+        keyLine: "爆点台词：" + template.lines.split(/[；\n]/)[0] + "，随后再补一句更适合投流切片的短句强化记忆点。",
+        cliffhanger: "结尾悬念：在观众以为冲突结束时，再补一个身份、孩子或证据钩子，把下一集欲望拉满。"
+      };
+    }
+
+    function updateApiPayloadPreview() {
+      const selectedTemplate = getCurrentTemplate();
+      const sampleOutputs = state.outputs.length ? state.outputs.map(item => item.title) : ["请先生成裂变内容"];
+      const prompt = buildFinalPrompt();
+      const payload = {
+        templateId: selectedTemplate ? selectedTemplate.id : "",
+        count: Number(refs.variationCount.value),
+        model: refs.videoModelName.value || "",
+        apiUrl: refs.videoApiUrl.value || "",
+        apiKey: refs.videoApiKey.value ? "已填写但前端预览不展示明文" : "",
+        mutate: getVariationSelection().changed,
+        subjectMappings: getSubjectMappings(),
+        prompt,
+        promptSeeds: sampleOutputs
+      };
+      refs.apiPayloadPreview.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    function handleAnalyze() {
+      const sourceFile = refs.videoUpload.files[0]?.name || "";
+      const title = refs.kbTitle.value.trim();
+      const genre = refs.kbGenre.value;
+      const framework = refs.kbFramework.value;
+      const notes = refs.kbNotes.value.trim();
+
+      const entry = buildKnowledgeAnalysis(title, genre, framework, notes, sourceFile);
+      state.knowledge.unshift(entry);
+      persist();
+      renderKnowledge();
+      renderTemplateOptions();
+
+      refs.kbTitle.value = "";
+      refs.kbNotes.value = "";
+      refs.videoUpload.value = "";
+    }
+
+    function handleSaveTemplate() {
+      const name = refs.templateName.value.trim();
+      const roles = refs.templateRoles.value.trim();
+      const hook = refs.templateHook.value.trim();
+      const lines = refs.templateLines.value.trim();
+      const sourceId = refs.templateSource.value;
+      const source = state.knowledge.find(item => item.id === sourceId);
+
+      if (!name || !roles || !hook || !lines) {
+        window.alert("请先填写完整的模板名称、角色设定、开头爆点和关键台词框架。");
+        return;
+      }
+
+      saveTemplate({
+        id: uid("tpl"),
+        name,
+        sourceId: sourceId || "",
+        sourceName: source ? source.title : "手动创建",
+        roles,
+        hook,
+        lines
+      });
+
+      refs.templateName.value = "";
+      refs.templateRoles.value = "";
+      refs.templateHook.value = "";
+      refs.templateLines.value = "";
+      refs.templateSource.value = "";
+    }
+
+    function handleGenerateIdeas() {
+      const template = getCurrentTemplate();
+      if (!template) {
+        window.alert("请先创建一个模板。");
+        return;
+      }
+
+      const count = Number(refs.variationCount.value);
+      const baseRoles = refs.variationBaseRoles.value.trim();
+      const tone = refs.variationTone.value.trim();
+      const promptText = buildFinalPrompt();
+      const subjectMappings = getSubjectMappings();
+      const subjectLabel = subjectMappings.length
+        ? subjectMappings.map(item => `${item.role}:${item.uploadName || item.preset || "新主体"}`).join(" / ")
+        : "未替换角色主体";
+
+      state.outputs = Array.from({ length: count }, (_, index) => buildVariationOutput(template, baseRoles, tone, index, subjectLabel, promptText));
+      renderOutputs();
+      refs.previewBox.innerHTML = `
+        <h4>${template.name} · 视频生成提示词</h4>
+        <p>主体映射：${subjectLabel}</p>
+        <ul>
+          <li>${promptText}</li>
+          <li>保留未勾选部分，替换已勾选部分</li>
+          <li>确认提示词后即可提交给视频模型生成画面</li>
+        </ul>
+        <div class="preview-style"></div>
+      `;
+      updateApiPayloadPreview();
+    }
+
+    function resetExamples() {
+      state.knowledge = structuredClone(defaultKnowledge);
+      state.templates = structuredClone(defaultTemplates);
+      state.outputs = [];
+      persist();
+      renderAll();
+    }
+
+    function switchStage(stageId) {
+      if (stageId === "staff" && !state.staffAuthed) {
+        renderStaffAccess(false, "请输入正确的账号密码后进入人员设置。");
+      }
+      document.querySelectorAll("[data-stage]").forEach(stage => {
+        stage.hidden = stage.dataset.stage !== stageId;
+      });
+
+      document.querySelectorAll(".nav-item[data-view]").forEach(item => {
+        item.classList.toggle("active", item.dataset.view === stageId);
+      });
+    }
+
+    function renderAll() {
+      renderKnowledge();
+      renderTemplateOptions();
+      renderTemplates();
+      renderVariationRoleOptions();
+      renderOutputs();
+      updatePromptPreview();
+      refs.variationCountLabel.textContent = refs.variationCount.value + " 条";
+      renderStaffAccess(state.staffAuthed);
+    }
+
+    function renderStaffAccess(authed, message) {
+      refs.staffAuthView.hidden = authed;
+      refs.staffSettingsView.hidden = !authed;
+      refs.staffAuthMessage.textContent = message || (authed
+        ? "已通过验证，可管理人员与权限设置。"
+        : "默认演示账号：admin，密码：duanju123");
+    }
+
+    function handleStaffLogin() {
+      const username = refs.staffUsername.value.trim();
+      const password = refs.staffPassword.value.trim();
+      if (username === staffCredentials.username && password === staffCredentials.password) {
+        state.staffAuthed = true;
+        refs.staffPassword.value = "";
+        renderStaffAccess(true, "已通过验证，可管理人员与权限设置。");
+      } else {
+        state.staffAuthed = false;
+        renderStaffAccess(false, "账号或密码错误，请重新输入。");
+      }
+    }
+
+    function handleStaffLogout() {
+      state.staffAuthed = false;
+      refs.staffUsername.value = "";
+      refs.staffPassword.value = "";
+      renderStaffAccess(false, "已退出人员设置，请重新输入账密。");
+    }
+
+    document.getElementById("analyzeBtn").addEventListener("click", handleAnalyze);
+    document.getElementById("saveTemplateBtn").addEventListener("click", handleSaveTemplate);
+    refs.saveCurrentKnowledgeBtn.addEventListener("click", () => {
+      if (!state.selectedKnowledgeId) return;
+      saveTemplateFromKnowledgeId(state.selectedKnowledgeId);
+    });
+    document.getElementById("loadFromKnowledgeBtn").addEventListener("click", () => fillTemplateFromKnowledge(refs.templateSource.value));
+    document.getElementById("generateIdeasBtn").addEventListener("click", handleGenerateIdeas);
+    document.getElementById("generateApiPayloadBtn").addEventListener("click", updateApiPayloadPreview);
+    document.getElementById("seedExamplesBtn").addEventListener("click", resetExamples);
+
+    refs.variationCount.addEventListener("input", () => {
+      refs.variationCountLabel.textContent = refs.variationCount.value + " 条";
+      updateApiPayloadPreview();
+    });
+
+    refs.templateSource.addEventListener("change", () => {
+      if (refs.templateSource.value) {
+        fillTemplateFromKnowledge(refs.templateSource.value);
+      }
+    });
+
+    refs.variationTemplate.addEventListener("change", () => {
+      const selected = state.templates.find(item => item.id === refs.variationTemplate.value);
+      renderTemplateFeature(selected || state.templates[0]);
+      renderVariationRoleOptions();
+      updatePromptPreview();
+    });
+
+    refs.videoApiUrl.addEventListener("input", updateApiPayloadPreview);
+    refs.videoApiKey.addEventListener("input", updateApiPayloadPreview);
+    refs.videoModelName.addEventListener("input", updateApiPayloadPreview);
+    refs.variationTone.addEventListener("input", updatePromptPreview);
+    refs.variationStylePrompt.addEventListener("input", updatePromptPreview);
+    refs.variationScenePrompt.addEventListener("input", updatePromptPreview);
+    refs.mutateCharacters.addEventListener("change", () => {
+      updateCharacterMutationVisibility();
+      renderSubjectMappings();
+      updatePromptPreview();
+    });
+    refs.mutateLines.addEventListener("change", updatePromptPreview);
+    refs.mutateStyle.addEventListener("change", updatePromptPreview);
+    refs.mutateScene.addEventListener("change", updatePromptPreview);
+
+    document.querySelectorAll(".nav-item[data-view]").forEach(item => {
+      item.addEventListener("click", event => {
+        event.preventDefault();
+        const target = item.dataset.view;
+        switchStage(target);
+        history.replaceState(null, "", "#" + target);
+      });
+    });
+
+    refs.knowledgeList.addEventListener("click", event => {
+      const button = event.target.closest("[data-save-template]");
+      if (!button) return;
+      event.stopPropagation();
+      saveTemplateFromKnowledgeId(button.dataset.saveTemplate);
+    });
+
+    refs.templateRoleChecklist.addEventListener("change", () => {
+      renderSubjectMappings();
+      updatePromptPreview();
+    });
+
+    refs.subjectMappingList.addEventListener("change", updatePromptPreview);
+    refs.subjectMappingList.addEventListener("input", updatePromptPreview);
+    refs.staffLoginBtn.addEventListener("click", handleStaffLogin);
+    refs.staffLogoutBtn.addEventListener("click", handleStaffLogout);
+
+    const initialStage = ["knowledge", "templates", "variation", "staff"].includes(location.hash.slice(1))
+      ? location.hash.slice(1)
+      : "knowledge";
+
+    renderAll();
+    switchStage(initialStage);
+  </script>
+</body>
+</html>
