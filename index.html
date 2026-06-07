@@ -2448,7 +2448,7 @@
       renderAll();
     }
 
-    function switchStage(stageId) {
+    function switchStage(stageId, activeNavItem) {
       if (stageId === "staff" && !state.staffAuthed) {
         renderStaffAccess(false, "请输入正确的账号密码后进入人员设置。");
       }
@@ -2457,8 +2457,14 @@
       });
 
       document.querySelectorAll(".nav-item[data-view]").forEach(item => {
-        item.classList.toggle("active", item.dataset.view === stageId);
+        item.classList.remove("active");
       });
+
+      const fallbackNavItem = document.querySelector(`.nav-item[data-view="${stageId}"]`);
+      const nextActiveItem = activeNavItem || fallbackNavItem;
+      if (nextActiveItem) {
+        nextActiveItem.classList.add("active");
+      }
     }
 
     function renderAll() {
@@ -2548,7 +2554,7 @@
       item.addEventListener("click", event => {
         event.preventDefault();
         const target = item.dataset.view;
-        switchStage(target);
+        switchStage(target, item);
         history.replaceState(null, "", "#" + target);
       });
     });
