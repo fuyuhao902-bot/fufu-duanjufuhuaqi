@@ -2108,9 +2108,48 @@
     }
 
     function buildRolePreviewMarkup(previewImage, index, role) {
-      const positions = ["18% 35%", "50% 30%", "82% 36%", "35% 62%"];
-      const position = positions[index % positions.length];
-      return `<img src="${previewImage}" alt="${role}预览图" style="object-position:${position}; transform:scale(1.45);" />`;
+      return `<img src="${previewImage}" alt="${role}预览图" data-role-preview-index="${index}" />`;
+    }
+
+    function createRolePreviewSlices(previewImage, count) {
+      return new Promise(resolve => {
+        const image = new Image();
+        image.onload = () => {
+          try {
+            const slices = Array.from({ length: count }, (_, index) => {
+              const canvas = document.createElement("canvas");
+              canvas.width = 96;
+              canvas.height = 96;
+              const ctx = canvas.getContext("2d");
+              const cropWidth = image.width * 0.34;
+              const cropHeight = image.height * 0.42;
+              const xPositions = [
+                image.width * 0.02,
+                image.width * 0.33,
+                image.width * 0.64,
+                image.width * 0.18
+              ];
+              const yPositions = [
+                image.height * 0.12,
+                image.height * 0.14,
+                image.height * 0.16,
+                image.height * 0.34
+              ];
+              const sx = Math.max(0, Math.min(image.width - cropWidth, xPositions[index % xPositions.length]));
+              const sy = Math.max(0, Math.min(image.height - cropHeight, yPositions[index % yPositions.length]));
+              ctx.drawImage(image, sx, sy, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+              return canvas.toDataURL("image/jpeg", 0.86);
+            });
+            resolve(slices);
+          } catch (error) {
+            resolve(Array.from({ length: count }, (_, index) => createFallbackPreview("角色" + (index + 1))));
+          }
+        };
+        image.onerror = () => {
+          resolve(Array.from({ length: count }, (_, index) => createFallbackPreview("角色" + (index + 1))));
+        };
+        image.src = previewImage;
+      });
     }
 
     function renderKnowledgeAnalysis(item) {
@@ -2206,6 +2245,13 @@
           <div class="meta" style="margin-top:10px;">现实风格 / 高清 / 电影感 / 暖光反差</div>
         </div>
       `;
+
+      createRolePreviewSlices(previewImage, Math.min(item.roles.length, 3)).then(slices => {
+        refs.analysisSidePanel.querySelectorAll("[data-role-preview-index]").forEach(node => {
+          const previewIndex = Number(node.dataset.rolePreviewIndex);
+          node.src = slices[previewIndex] || previewImage;
+        });
+      });
     }
 
     function renderKnowledge() {
